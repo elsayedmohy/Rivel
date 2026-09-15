@@ -49,6 +49,8 @@ public static class DependencyInjection
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IShipmentRequestService, ShipmentRequestService>();
         builder.Services.AddScoped<ShipmentRequestMapper>();
+        builder.Services.AddScoped<IOfferService, OfferService>();
+        builder.Services.AddScoped<OfferMapper>();
         return builder;
     }
 
