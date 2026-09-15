@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RiverLine.Api.Data;
@@ -11,9 +12,11 @@ using RiverLine.Api.Data;
 namespace RiverLine.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260915175528_ConvertRequestedDateIntoDateOnly")]
+    partial class ConvertRequestedDateIntoDateOnly
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -188,8 +191,8 @@ namespace RiverLine.Api.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
-                    b.Property<DateOnly>("ProposedPickupDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("ProposedPickupDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("ShipmentRequestId")
                         .HasColumnType("uuid");
@@ -197,16 +200,11 @@ namespace RiverLine.Api.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("VesselId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CarrierId");
 
                     b.HasIndex("ShipmentRequestId");
-
-                    b.HasIndex("VesselId");
 
                     b.ToTable("Offers");
                 });
@@ -482,17 +480,9 @@ namespace RiverLine.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RiverLine.Api.Models.Entities.Vessel", "Vessel")
-                        .WithMany()
-                        .HasForeignKey("VesselId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Carrier");
 
                     b.Navigation("ShipmentRequest");
-
-                    b.Navigation("Vessel");
                 });
 
             modelBuilder.Entity("RiverLine.Api.Models.Entities.Rating", b =>
