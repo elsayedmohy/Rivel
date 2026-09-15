@@ -9,7 +9,7 @@ public class ShipmentRequest
     public double Weight { get; set; }
     public string Origin { get; set; } = default!;
     public string Destination { get; set; } = default!;
-    public DateTime RequestedDate { get; set; }
+    public DateOnly RequestedDate { get; set; }
     public ShipmentRequestStatus Status { get; set; } = ShipmentRequestStatus.Open;
 
     public ICollection<Offer> Offers { get; set; } = new List<Offer>();

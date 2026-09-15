@@ -26,29 +26,52 @@ public class ShipmentRequestService(
 
     public async Task<List<ShipmentRequestDto>> GetOpenAsync()
     {
-        var requests = await  dbContext.ShipmentRequests.Where(x=> 
-            x.Status == ShipmentRequestStatus.Open)
-            .Include(r => r.Offers)
-            .Select(x=> mapper.ToDto(x))
+        return await dbContext.ShipmentRequests
+            .Where(x => x.Status == ShipmentRequestStatus.Open)
+            .Select(x => new ShipmentRequestDto(
+                x.Id,
+                x.CargoType,
+                x.Weight,
+                x.Origin,
+                x.Destination,
+                x.RequestedDate,
+                x.Status.ToString(),
+                x.CargoOwnerId,
+                x.Offers.Count))
             .ToListAsync();
-        return requests;
     }
 
     public async Task<List<ShipmentRequestDto>> GetMineAsync(Guid cargoOwnerId)
     {
-        var requests = await  dbContext.ShipmentRequests.Where(x=> 
-                x.CargoOwnerId == cargoOwnerId)
-            .Include(r => r.Offers)
-            .Select(x=> mapper.ToDto(x))
+        return await dbContext.ShipmentRequests
+            .Where(x => x.CargoOwnerId == cargoOwnerId)
+            .Select(x => new ShipmentRequestDto(
+                x.Id,
+                x.CargoType,
+                x.Weight,
+                x.Origin,
+                x.Destination,
+                x.RequestedDate,
+                x.Status.ToString(),
+                x.CargoOwnerId,
+                x.Offers.Count))
             .ToListAsync();
-        return requests;
     }
 
     public async Task<ShipmentRequestDto?> GetByIdAsync(Guid id)
     {
-        var entity = await dbContext.ShipmentRequests
-            .Include(r => r.Offers)
-            .FirstOrDefaultAsync(r => r.Id == id);
-        return entity is null ? null : mapper.ToDto(entity);
+        return await dbContext.ShipmentRequests
+            .Where(x => x.Id == id)
+            .Select(x => new ShipmentRequestDto(
+                x.Id,
+                x.CargoType,
+                x.Weight,
+                x.Origin,
+                x.Destination,
+                x.RequestedDate,
+                x.Status.ToString(),
+                x.CargoOwnerId,
+                x.Offers.Count))
+            .SingleOrDefaultAsync();
     }
 }

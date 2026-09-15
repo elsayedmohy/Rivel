@@ -4,7 +4,8 @@ namespace RiverLine.Api.Services.Auth;
 public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
-    ITokenService tokenService)
+    ITokenService tokenService,
+    ApplicationDbContext dbContext)
     : IAuthService
 {
 
@@ -21,6 +22,18 @@ public class AuthService(
         if (!result.Succeeded)
             return new AuthResult(null, result.Errors);
 
+        if (dto.Role == UserRole.Carrier)
+        {
+            dbContext.CarrierProfiles.Add(new CarrierProfile
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                CompanyName = dto.CompanyName ?? string.Empty,
+                OverallRating = 0
+            });
+            await dbContext.SaveChangesAsync();
+        }
+
         var token = tokenService.GenerateToken(user);
 
         return new AuthResult(
@@ -28,7 +41,7 @@ public class AuthService(
             []);
     }
 
-    public async Task<AuthResult> LoginAsync(LoginDto dto)
+    public async Task<AuthResult?> LoginAsync(LoginDto dto)
     {
         var user = await userManager.FindByEmailAsync(dto.Email);
         if (user is null) return null;
