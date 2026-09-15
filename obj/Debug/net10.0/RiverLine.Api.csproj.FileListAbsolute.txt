@@ -130,8 +130,10 @@
 /home/sayed/Code/BL/RiverLine/RiverLine.Api/obj/Debug/net10.0/RiverLine.Api.pdb
 /home/sayed/Code/BL/RiverLine/RiverLine.Api/obj/Debug/net10.0/RiverLine.Api.genruntimeconfig.cache
 /home/sayed/Code/BL/RiverLine/RiverLine.Api/obj/Debug/net10.0/ref/RiverLine.Api.dll
-/home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/Scalar.AspNetCore.dll
 /home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/FluentValidation.dll
 /home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/FluentValidation.DependencyInjectionExtensions.dll
 /home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/System.Linq.Dynamic.Core.dll
 /home/sayed/Code/BL/RiverLine/RiverLine.Api/obj/Debug/net10.0/RiverLine.Api.sourcelink.json
+/home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/Swashbuckle.AspNetCore.Swagger.dll
+/home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/Swashbuckle.AspNetCore.SwaggerGen.dll
+/home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/Swashbuckle.AspNetCore.SwaggerUI.dll

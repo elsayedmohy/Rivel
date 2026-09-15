@@ -1,8 +1,3 @@
-
-
-
-using RiverLine.Api.Mappers;
-
 namespace RiverLine.Api;
 
 public static class DependencyInjection
@@ -12,11 +7,36 @@ public static class DependencyInjection
     {
         builder.Services.AddControllers(options =>
                 options.ReturnHttpNotAcceptable = true)
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            })
             .AddXmlSerializerFormatters();
         builder.Services.AddProblemDetails();
         builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-        builder.Services.AddOpenApi();
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+        
 
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter your JWT token."
+            });
+
+            options.AddSecurityRequirement(document =>
+                new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+                });
+        });
+        
         return builder;
     }
     
@@ -48,6 +68,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<ITokenService, TokenService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IShipmentRequestService, ShipmentRequestService>();
+        builder.Services.AddScoped<IShipmentService, ShipmentService>();
         builder.Services.AddScoped<ShipmentRequestMapper>();
         builder.Services.AddScoped<IOfferService, OfferService>();
         builder.Services.AddScoped<OfferMapper>();
