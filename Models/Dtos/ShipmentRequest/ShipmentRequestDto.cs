@@ -1,0 +1,13 @@
+namespace RiverLine.Api.Models.Dtos.ShipmentRequest;
+
+public record ShipmentRequestDto(
+    Guid Id,
+    string CargoType,
+    double Weight,
+    string Origin,
+    string Destination,
+    DateTime RequestedDate,
+    string Status,
+    Guid CargoOwnerId,
+    int OffersCount
+);

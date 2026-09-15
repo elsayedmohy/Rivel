@@ -24,7 +24,7 @@ public class AuthService(
         var token = tokenService.GenerateToken(user);
 
         return new AuthResult(
-            new AuthResponseDto("success", user.Id, user.Role.ToString()),
+            new AuthResponseDto(token, user.Id, user.Role.ToString()),
             []);
     }
 
@@ -42,7 +42,7 @@ public class AuthService(
         var token = tokenService.GenerateToken(user);
 
         return new AuthResult(
-            new AuthResponseDto("success", user.Id, user.Role.ToString()),
+            new AuthResponseDto(token, user.Id, user.Role.ToString()),
             []);
     }
 }
