@@ -6,7 +6,7 @@ public record ShipmentRequestDto(
     double Weight,
     string Origin,
     string Destination,
-    DateTime RequestedDate,
+    DateOnly RequestedDate,
     string Status,
     Guid CargoOwnerId,
     int OffersCount

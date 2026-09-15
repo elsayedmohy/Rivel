@@ -11,5 +11,5 @@ public class ShipmentRequestMapper
             r.RequestedDate,
             r.Status.ToString(),
             r.CargoOwnerId,
-            r.Offers?.Count ?? 0);
+            r.Offers.Count);
 }

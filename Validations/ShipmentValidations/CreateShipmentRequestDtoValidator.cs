@@ -37,7 +37,7 @@ public sealed class CreateShipmentRequestValidator
         RuleFor(x => x.RequestedDate)
             .NotEmpty()
             .WithMessage("Requested date is required.")
-            .GreaterThanOrEqualTo(DateTime.UtcNow.Date)
+            .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
             .WithMessage("Requested date cannot be in the past.");
     }
 }

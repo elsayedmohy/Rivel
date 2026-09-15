@@ -287,8 +287,8 @@ namespace RiverLine.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("RequestedDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly>("RequestedDate")
+                        .HasColumnType("date");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

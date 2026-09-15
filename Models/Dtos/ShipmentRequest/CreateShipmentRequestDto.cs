@@ -5,4 +5,4 @@ public record CreateShipmentRequestDto(
     double Weight,
     string Origin,
     string Destination,
-    DateTime RequestedDate);
+    DateOnly RequestedDate);

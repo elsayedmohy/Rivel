@@ -1,6 +1,60 @@
 @RiverLine.Api_HostAddress = http://localhost:5132
 
-GET {{RiverLine.Api_HostAddress}}/weatherforecast/
+### Register a cargo owner
+POST {{RiverLine.Api_HostAddress}}/api/auth/register
 Accept: application/json
+Content-Type: application/json
 
-###
+{
+  "name": "Alice",
+  "email": "alice@example.com",
+  "password": "Passw0rd!",
+  "role": 0
+}
+
+### Register a carrier
+POST {{RiverLine.Api_HostAddress}}/api/auth/register
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Bob",
+  "email": "bob@example.com",
+  "password": "Passw0rd!",
+  "role": 1,
+  "companyName": "River Freight Co."
+}
+
+### Login
+POST {{RiverLine.Api_HostAddress}}/api/auth/login
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "Passw0rd!"
+}
+
+### Who am I
+GET {{RiverLine.Api_HostAddress}}/api/auth/me
+Accept: application/json
+Authorization: Bearer <token>
+
+### Create a shipment request (CargoOwner)
+POST {{RiverLine.Api_HostAddress}}/api/shipment-requests
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "cargoType": "Grains",
+  "weight": 1200.5,
+  "origin": "Rotterdam",
+  "destination": "Duisburg",
+  "requestedDate": "2026-10-01T00:00:00Z"
+}
+
+### Open shipment requests (Carrier)
+GET {{RiverLine.Api_HostAddress}}/api/shipment-requests/open
+Accept: application/json
+Authorization: Bearer <token>

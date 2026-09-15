@@ -35,5 +35,12 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
         RuleFor(x => x.Role)
             .IsInEnum()
             .WithMessage("Invalid user role.");
+
+        RuleFor(x => x.CompanyName)
+            .NotEmpty()
+            .WithMessage("Company name is required for carriers.")
+            .MaximumLength(200)
+            .WithMessage("Company name must not exceed 200 characters.")
+            .When(x => x.Role == UserRole.Carrier);
     }
 }
