@@ -1,4 +1,4 @@
-namespace RiverLine.Api.Validations;
+namespace RiverLine.Api.Validations.AuthValidations;
 
 public class RegisterDtoValidator : AbstractValidator<RegisterDto>
 {

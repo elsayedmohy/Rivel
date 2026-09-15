@@ -1,6 +1,8 @@
 
 
 
+using RiverLine.Api.Mappers;
+
 namespace RiverLine.Api;
 
 public static class DependencyInjection
@@ -45,6 +47,8 @@ public static class DependencyInjection
         builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
         builder.Services.AddScoped<ITokenService, TokenService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IShipmentRequestService, ShipmentRequestService>();
+        builder.Services.AddScoped<ShipmentRequestMapper>();
         return builder;
     }
 
@@ -52,7 +56,7 @@ public static class DependencyInjection
     {
         builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
             {
-                options.Password.RequiredLength = 6;
+                options.Password.RequiredLength = 8;
                 options.Password.RequireNonAlphanumeric = false;
                 options.User.RequireUniqueEmail = true;
             })
@@ -73,6 +77,25 @@ public static class DependencyInjection
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        Console.WriteLine($"JWT FAILED: {context.Exception.Message}");
+                        return Task.CompletedTask;
+                    },
+                    OnChallenge = context =>
+                    {
+                        Console.WriteLine($"JWT CHALLENGE: {context.Error} - {context.ErrorDescription}");
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        Console.WriteLine("JWT VALIDATED SUCCESSFULLY");
+                        return Task.CompletedTask;
+                    }
+                };
+
             });
         return builder;
     }

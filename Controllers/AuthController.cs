@@ -1,6 +1,4 @@
 
-using Microsoft.AspNetCore.Mvc;
-
 namespace RiverLine.Api.Controllers;
 
 [ApiController]
@@ -34,5 +32,22 @@ public class AuthController(IAuthService authService) : ControllerBase
             return Unauthorized("Invalid email or password");
 
         return Ok(result);
+    }
+    
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        return Ok(new
+        {
+            IsAuthenticated = User.Identity?.IsAuthenticated,
+            UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+            Name = User.Identity?.Name,
+            Claims = User.Claims.Select(x => new
+            {
+                x.Type,
+                x.Value
+            })
+        });
     }
 }
