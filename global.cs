@@ -19,17 +19,20 @@ global using System.Security.Claims;
 // ************************************************
 
 global using RiverLine.Api;
+global using RiverLine.Api.Common;
 global using RiverLine.Api.Models.Enums;
 global using RiverLine.Api.Models.Entities;
 global using RiverLine.Api.Models.Dtos.Auth;
 global using RiverLine.Api.Models.Dtos.ShipmentRequest;
 global using RiverLine.Api.Models.Dtos.Offer;
 global using RiverLine.Api.Models.Dtos.Shipment;
+global using RiverLine.Api.Models.Dtos.Rating;
 global using RiverLine.Api.Data;
 global using RiverLine.Api.Services.Auth;
 global using RiverLine.Api.Services.ShipmentRequests;
 global using RiverLine.Api.Services.Shipments;
 global using RiverLine.Api.Services.Offers;
+global using RiverLine.Api.Services.Ratings;
 global using RiverLine.Api.Mappers;
 global using RiverLine.Api.Settings;
 global using RiverLine.Api.Middleware;
