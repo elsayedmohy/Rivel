@@ -5,6 +5,7 @@ public class OfferMapper
     public OfferDto ToDto(Offer o) =>
         new(o.Id,
             o.ShipmentRequestId,
+            o.Shipment is null ? null : o.Shipment.Id,
             o.CarrierId,
             o.VesselId,
             o.Price,

@@ -84,6 +84,7 @@ public class OfferService(
             .Select(o => new OfferDto(
                 o.Id,
                 o.ShipmentRequestId,
+                o.Shipment == null ? null : o.Shipment.Id,
                 o.CarrierId,
                 o.VesselId,
                 o.Price,
@@ -102,6 +103,7 @@ public class OfferService(
             .Select(o => new OfferDto(
                 o.Id,
                 o.ShipmentRequestId,
+                o.Shipment == null ? null : o.Shipment.Id,
                 o.CarrierId,
                 o.VesselId,
                 o.Price,
@@ -188,15 +190,18 @@ public class OfferService(
         foreach (var sibling in siblings.Where(s => s.Status == OfferStatus.Pending))
             sibling.Status = OfferStatus.Rejected;
 
-        dbContext.Shipments.Add(new Shipment
+
+        var shipment = new Shipment
         {
             Id = Guid.NewGuid(),
             ShipmentRequestId = request.Id,
             OfferId = offer.Id,
             VesselId = vessel.Id,
             Status = ShipmentStatus.Matched
-        });
-
+        };
+        
+        dbContext.Shipments.Add(shipment);
+        offer.Shipment = shipment;
         await dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
 

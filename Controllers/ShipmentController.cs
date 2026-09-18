@@ -23,6 +23,14 @@ public class ShipmentsController(IShipmentService service) : ControllerBase
                 _ => BadRequest(result.Message)
             };
     }
+    
+    
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await service.GetAllAsync(User.GetUserId());
+        return this.ToActionResult(result);
+    }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
