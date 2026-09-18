@@ -8,7 +8,8 @@ builder.AddControllers()
     .AddErrorHandling()
     .AddDatabase()
     .AddApplicationServices()
-    .AddAuthenticationServices();
+    .AddAuthenticationServices()
+    .AddCors();
 
 var app = builder.Build();
 
@@ -25,7 +26,7 @@ app.UseExceptionHandler();
 app.UseStatusCodePages();
 
 app.UseHttpsRedirection();
-
+app.UseCors("RiverLinePolicy"); 
 app.UseAuthentication();
 app.UseAuthorization();
 
