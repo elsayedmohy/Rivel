@@ -24,13 +24,14 @@ public class AuthService(
 
         if (dto.Role == UserRole.Carrier)
         {
-            dbContext.CarrierProfiles.Add(new CarrierProfile
+            var profile = new CarrierProfile
             {
                 Id = Guid.NewGuid(),
                 UserId = user.Id,
-                CompanyName = dto.CompanyName ?? string.Empty,
+                CompanyName = dto.CompanyName!,
                 OverallRating = 0
-            });
+            };
+            dbContext.CarrierProfiles.Add(profile);
             await dbContext.SaveChangesAsync();
         }
 

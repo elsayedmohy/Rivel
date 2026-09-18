@@ -27,6 +27,7 @@ global using RiverLine.Api.Models.Dtos.ShipmentRequest;
 global using RiverLine.Api.Models.Dtos.Offer;
 global using RiverLine.Api.Models.Dtos.Shipment;
 global using RiverLine.Api.Models.Dtos.Rating;
+global using RiverLine.Api.Models.Dtos.Vessel;
 global using RiverLine.Api.Data;
 global using RiverLine.Api.Services.Auth;
 global using RiverLine.Api.Services.ShipmentRequests;

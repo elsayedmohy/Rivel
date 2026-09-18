@@ -19,7 +19,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 
 
-    await app.SeedDevelopmentDataAsync();
 }
 app.UseExceptionHandler();
 
