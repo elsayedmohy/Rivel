@@ -1,16 +1,28 @@
-using RiverLine.Api.Services.Ratings;
-
 namespace RiverLine.Api.Controllers;
 
 [ApiController]
-[Route("api/shipments/{shipmentId:guid}/rating")]
-[Authorize(Roles = "CargoOwner")]
+[Route("api/ratings")]
 public class RatingsController(IRatingService service) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> Create(Guid shipmentId, CreateRatingDto dto)
+    [Authorize(Roles = "CargoOwner")]
+    public async Task<IActionResult> Create(
+        CreateRatingDto dto)
     {
-        var result = await service.CreateAsync(shipmentId, User.GetUserId(), dto);
+        var result = await service.CreateAsync(
+            User.GetUserId(),
+            dto);
+
+        return this.ToActionResult(result);
+    }
+
+    [HttpGet("{carrierId:guid}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetCarrierRatings(
+        Guid carrierId)
+    {
+        var result = await service.GetCarrierRatingsAsync(carrierId);
+
         return this.ToActionResult(result);
     }
 }
