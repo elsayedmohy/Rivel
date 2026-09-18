@@ -1,4 +1,4 @@
-namespace RiverLine.Api.Validations.OfferValidations;
+namespace RiverLine.Api.Validators.OfferValidators;
 
 public sealed class CreateOfferDtoValidator : AbstractValidator<CreateOfferDto>
 {
