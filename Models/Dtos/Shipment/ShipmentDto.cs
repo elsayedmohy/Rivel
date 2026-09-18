@@ -15,7 +15,7 @@ public record ShipmentDto(
     decimal OfferedPrice,
     DateOnly ProposedPickupDate,
     Guid VesselId,
-    string VesselType,
+    VesselType VesselType,
     string CarrierCompanyName,
     RatingDto? Rating
 );
