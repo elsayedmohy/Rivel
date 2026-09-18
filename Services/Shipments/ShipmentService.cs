@@ -1,6 +1,7 @@
 namespace RiverLine.Api.Services.Shipments;
 
-public class ShipmentService(ApplicationDbContext dbContext) : IShipmentService
+public class ShipmentService(ApplicationDbContext dbContext,
+    ShipmentMapper shipmentMapper) : IShipmentService
 {
     
     private static readonly Dictionary<ShipmentStatus, ShipmentStatus> AllowedTransitions = new()
@@ -52,15 +53,47 @@ public class ShipmentService(ApplicationDbContext dbContext) : IShipmentService
 
         await dbContext.SaveChangesAsync();
 
-        return ShipmentOperationResult.Success(ToDto(shipment));
+        return ShipmentOperationResult.Success(shipmentMapper.ToDto(shipment));
+    }
+    
+    
+    public async Task<Result<List<ShipmentDto>>> GetAllAsync(Guid userId)
+    {
+        var shipments = await dbContext.Shipments
+            .Where(x => x.ShipmentRequest.CargoOwnerId == userId
+                        || x.Vessel.CarrierProfile.UserId == userId)
+            .Select(s => new ShipmentDto(
+                s.Id,
+                s.Status.ToString(),
+                s.ShipmentRequestId,
+                s.ShipmentRequest.CargoType,
+                s.ShipmentRequest.Weight,
+                s.ShipmentRequest.Origin,
+                s.ShipmentRequest.Destination,
+                s.ShipmentRequest.RequestedDate,
+                s.ShipmentRequest.CargoOwnerId,
+                s.ShipmentRequest.CargoOwner.Name,
+                s.OfferId,
+                s.Offer.Price,
+                s.Offer.ProposedPickupDate,
+                s.VesselId,
+                s.Vessel.Type,
+                s.Vessel.CarrierProfile.CompanyName,
+                s.Rating == null ? null : new RatingDto(
+                    s.Rating.Id,
+                    s.Rating.ShipmentId,
+                    s.Rating.Score,
+                    s.Rating.Comment)
+            ))
+            .ToListAsync();
+
+        return Result<List<ShipmentDto>>.Success(shipments);
     }
 
     public async Task<ShipmentDto?> GetByIdAsync(Guid id)
     {
         var shipment = await dbContext.Shipments.FirstOrDefaultAsync(s => s.Id == id);
-        return shipment is null ? null : ToDto(shipment);
+        return shipment is null ? null : (shipmentMapper.ToDto(shipment));
     }
     
-    private static ShipmentDto ToDto(Shipment s) =>
-        new(s.Id, s.ShipmentRequestId, s.OfferId, s.VesselId, s.Status.ToString());
 }
