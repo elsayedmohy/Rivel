@@ -4,7 +4,7 @@ namespace RiverLine.Api.Controllers;
 [Route("api/ratings")]
 public class RatingsController(IRatingService service) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("create")]
     [Authorize(Roles = "CargoOwner")]
     public async Task<IActionResult> Create(
         CreateRatingDto dto)

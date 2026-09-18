@@ -16,8 +16,7 @@ public class ShipmentService(ApplicationDbContext dbContext,
         Guid carrierId,
         ShipmentStatus newStatus)
     {
-        var shipment = await dbContext.Shipments
-            .Include(s => s.Vessel)
+        var shipment = await ShipmentsWithDetails()
             .FirstOrDefaultAsync(s => s.Id == shipmentId);
 
         if (shipment is null)
@@ -92,8 +91,30 @@ public class ShipmentService(ApplicationDbContext dbContext,
 
     public async Task<ShipmentDto?> GetByIdAsync(Guid id)
     {
-        var shipment = await dbContext.Shipments.FirstOrDefaultAsync(s => s.Id == id);
+        var shipment = await ShipmentsWithDetails().FirstOrDefaultAsync(s => s.Id == id);
         return shipment is null ? null : (shipmentMapper.ToDto(shipment));
+    }
+
+    private IQueryable<Shipment> ShipmentsWithDetails() =>
+        dbContext.Shipments
+            .Include(s => s.ShipmentRequest)
+                .ThenInclude(sr => sr.CargoOwner)
+            .Include(s => s.Offer)
+            .Include(s => s.Vessel)
+                .ThenInclude(v => v.CarrierProfile)
+            .Include(s => s.Rating);
+
+    public async Task<Result<RatingDto>> GetRatingAsync(Guid shipmentId, Guid requestingUserId)
+    {
+        var rating = await dbContext.Ratings
+            .Where(r => r.ShipmentId == shipmentId)
+            .Select(r => new RatingDto(r.Id, r.ShipmentId, r.Score, r.Comment))
+            .SingleOrDefaultAsync();
+
+        if (rating is null)
+            return Result.Failure(OperationError.NotFound, "Rating not found.");
+
+        return Result<RatingDto>.Success(rating);
     }
     
 }
