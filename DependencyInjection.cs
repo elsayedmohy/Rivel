@@ -2,24 +2,24 @@ namespace RiverLine.Api;
 
 public static class DependencyInjection
 {
-    
     public static WebApplicationBuilder AddControllers(this WebApplicationBuilder builder)
     {
         builder.Services.AddControllers(options =>
                 options.ReturnHttpNotAcceptable = true)
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            })
+            .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); })
             .AddXmlSerializerFormatters();
         builder.Services.AddProblemDetails();
         builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-        
+
 
         builder.Services.AddSwaggerGen(options =>
         {
+            options.AddServer(new OpenApiServer
+            {
+                Url = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5132"
+            });
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
@@ -36,17 +36,17 @@ public static class DependencyInjection
                     [new OpenApiSecuritySchemeReference("Bearer", document)] = []
                 });
         });
-        
+
         return builder;
     }
-    
+
     public static WebApplicationBuilder AddDatabase(this WebApplicationBuilder builder)
     {
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
         return builder;
     }
-    
+
     public static WebApplicationBuilder AddErrorHandling(this WebApplicationBuilder builder)
     {
         builder.Services.AddProblemDetails(options =>
@@ -124,9 +124,27 @@ public static class DependencyInjection
                         return Task.CompletedTask;
                     }
                 };
-
             });
         return builder;
     }
-    
+
+    public static WebApplicationBuilder AddCors(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("RiverLinePolicy", policy =>
+            {
+                var origins = builder.Configuration
+                    .GetSection("Cors:AllowedOrigins")
+                    .Get<string[]>() ?? [];
+
+                policy
+                    .WithOrigins(origins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+        });
+        return builder;
+    }
 }
+
