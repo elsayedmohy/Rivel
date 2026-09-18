@@ -38,4 +38,11 @@ public class ShipmentsController(IShipmentService service) : ControllerBase
         var result = await service.GetByIdAsync(id);
         return result is null ? NotFound() : Ok(result);
     }
+    
+    [HttpGet("{id}/rating")]
+    public async Task<IActionResult> GetRating(Guid id)
+    {
+        var result = await service.GetRatingAsync(id, User.GetUserId());
+        return this.ToActionResult(result);
+    }
 }
