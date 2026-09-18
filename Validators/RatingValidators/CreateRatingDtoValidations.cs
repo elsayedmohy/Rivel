@@ -1,5 +1,5 @@
 
-namespace RiverLine.Api.Validations.RatingValidations;
+namespace RiverLine.Api.Validators.RatingValidators;
 
 
 public sealed class CreateRatingDtoValidator : AbstractValidator<CreateRatingDto>

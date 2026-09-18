@@ -1,4 +1,4 @@
-namespace RiverLine.Api.Validations.ShipmentValidations;
+namespace RiverLine.Api.Validators.ShipmentValidators;
 
 public sealed class CreateShipmentRequestValidator 
     : AbstractValidator<CreateShipmentRequestDto>
