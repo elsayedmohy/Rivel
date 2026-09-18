@@ -1,3 +1,6 @@
 namespace RiverLine.Api.Models.Dtos.Rating;
 
-public record CreateRatingDto(int Score, string? Comment);
+public record CreateRatingDto(
+    Guid ShipmentId, 
+    int Score, 
+    string? Comment);

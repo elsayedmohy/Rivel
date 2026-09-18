@@ -5,13 +5,13 @@ namespace RiverLine.Api.Services.Ratings;
 public class RatingService(ApplicationDbContext dbContext) : IRatingService
 {
 
-    public async Task<Result<RatingDto>> CreateAsync(Guid shipmentId, Guid cargoOwnerId, CreateRatingDto dto)
+    public async Task<Result<RatingDto>> CreateAsync( Guid cargoOwnerId, CreateRatingDto dto)
     {
         var shipment = await dbContext.Shipments
             .Include(s => s.ShipmentRequest)
             .Include(s => s.Offer)
             .Include(s => s.Rating)
-            .FirstOrDefaultAsync(s => s.Id == shipmentId);
+            .FirstOrDefaultAsync(s => s.Id == dto.ShipmentId);
 
         if (shipment is null)
             return Result.Failure(OperationError.NotFound, "Shipment not found.");
@@ -28,7 +28,7 @@ public class RatingService(ApplicationDbContext dbContext) : IRatingService
         var rating = new Rating
         {
             Id = Guid.NewGuid(),
-            ShipmentId = shipmentId,
+            ShipmentId = dto.ShipmentId,
             CargoOwnerId = cargoOwnerId,
             CarrierId = shipment.Offer.CarrierId,
             Score = dto.Score,
@@ -39,5 +39,25 @@ public class RatingService(ApplicationDbContext dbContext) : IRatingService
         await dbContext.SaveChangesAsync();
 
         return Result<RatingDto>.Success(new RatingDto(rating.Id, rating.ShipmentId, rating.Score, rating.Comment));
+    }
+
+    public async Task<Result<List<RatingDto>>> GetCarrierRatingsAsync(Guid carrierId)
+    {
+        var ratings = await dbContext.Ratings
+            .AsNoTracking()
+            .Where(r => r.CarrierId == carrierId)
+            .Select(r => new RatingDto(
+                r.Id,
+                r.ShipmentId,
+                r.Score,
+                r.Comment))
+            .ToListAsync();
+
+        if (ratings.Count == 0)
+            return Result<List<RatingDto>>.Failure(
+                OperationError.NotFound,
+                "Carrier has no ratings yet.");
+
+        return Result<List<RatingDto>>.Success(ratings);
     }
 }
