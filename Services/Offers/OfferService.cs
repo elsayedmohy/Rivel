@@ -1,7 +1,9 @@
+
 namespace RiverLine.Api.Services.Offers;
 
 public class OfferService(
     ApplicationDbContext dbContext,
+    IEmailService emailService,
     OfferMapper mapper) : IOfferService
 {
     public async Task<Result<OfferDto>> CreateAsync(Guid carrierId, Guid shipmentRequestId, CreateOfferDto dto)
@@ -68,7 +70,15 @@ public class OfferService(
 
         dbContext.Offers.Add(offer);
         await dbContext.SaveChangesAsync();
+        var cargoOwner = await dbContext.Users.FindAsync(request.CargoOwnerId);
+        var originName = offer.ShipmentRequest.OriginNileBerth.Name;
+        var destName = offer.ShipmentRequest.DestinationNileBerth.Name;
 
+        await emailService.SendNewOfferNotificationAsync(
+            cargoOwner!.Email!,
+            cargoOwner.Name,
+            originName,
+            destName);
         return Result<OfferDto>.Success(mapper.ToDto(offer));
     }
 
@@ -125,6 +135,10 @@ public class OfferService(
         var offer = await dbContext.Offers
             .Include(o => o.Carrier)
             .ThenInclude(c => c.CarrierProfile)
+            .Include(o => o.ShipmentRequest)
+            .ThenInclude(r => r.OriginNileBerth)
+            .Include(o => o.ShipmentRequest)
+            .ThenInclude(r => r.DestinationNileBerth)
             .FirstOrDefaultAsync(o => o.Id == offerId);
         if (offer is null)
         {
@@ -209,6 +223,16 @@ public class OfferService(
         await dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
 
+        
+        var carrier = await dbContext.Users.FindAsync(offer.CarrierId);
+
+        await emailService.SendOfferAcceptedNotificationAsync(
+            carrier!.Email!,
+            carrier.Name,
+            offer.ShipmentRequest.OriginNileBerth.Name,
+            offer.ShipmentRequest.DestinationNileBerth.Name,
+            offer.ProposedPickupDate);
+        
         return Result<OfferDto>.Success(mapper.ToDto(offer));
     }
 }

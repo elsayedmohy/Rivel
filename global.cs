@@ -10,6 +10,8 @@ global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.OpenApi;
 global using System.Text.Json.Serialization;
 global using FluentValidation;
+global using Resend;
+global using Microsoft.Extensions.Options;
 // ************************************************
 
 global using System.Text;
@@ -38,6 +40,7 @@ global using RiverLine.Api.Services.Shipments;
 global using RiverLine.Api.Services.Offers;
 global using RiverLine.Api.Services.Ratings;
 global using RiverLine.Api.Services.CarrierRoutes;
+global using RiverLine.Api.Services.Email; 
 global using RiverLine.Api.Mappers;
 global using RiverLine.Api.Settings;
 global using RiverLine.Api.Middleware;
