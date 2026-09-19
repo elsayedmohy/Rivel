@@ -7,6 +7,7 @@ public class CarrierProfile
     public User User { get; set; } = default!;
     public string CompanyName { get; set; } = default!;
     public double OverallRating { get; set; }
+    public ICollection<CarrierRoute> Routes { get; set; } = new List<CarrierRoute>();
 
     public ICollection<Vessel> Vessels { get; set; } = new List<Vessel>();
 }

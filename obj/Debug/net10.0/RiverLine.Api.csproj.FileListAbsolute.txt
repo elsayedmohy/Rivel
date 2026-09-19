@@ -137,9 +137,3 @@
 /home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/Swashbuckle.AspNetCore.Swagger.dll
 /home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/Swashbuckle.AspNetCore.SwaggerGen.dll
 /home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/Swashbuckle.AspNetCore.SwaggerUI.dll
-/home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/publish/web.config
-/home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/publish/appsettings.Development.json
-/home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/publish/appsettings.json
-/home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/publish/RiverLine.Api.deps.json
-/home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/publish/RiverLine.Api.runtimeconfig.json
-/home/sayed/Code/BL/RiverLine/RiverLine.Api/bin/Debug/net10.0/publish/RiverLine.Api.staticwebassets.endpoints.json
