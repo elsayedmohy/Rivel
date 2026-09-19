@@ -15,7 +15,7 @@ public class OffersController(IOfferService service) : ControllerBase
             return ValidationProblem(new ValidationProblemDetails(validationResult.ToDictionary()));
 
         var result = await service.CreateAsync(User.GetUserId(), shipmentRequestId, dto);
-        return FromResult(result, data => StatusCode(StatusCodes.Status201Created, data));
+        return this.ToActionResult(result);
     }
 
     [HttpGet("shipment-requests/{shipmentRequestId:guid}/offers")]
@@ -35,7 +35,7 @@ public class OffersController(IOfferService service) : ControllerBase
     public async Task<IActionResult> Accept(Guid offerId)
     {
         var result = await service.AcceptAsync(User.GetUserId(), offerId);
-        return FromResult(result, Ok);
+        return this.ToActionResult(result);
     }
 
     private IActionResult FromResult(OfferOperationResult result, Func<OfferDto, IActionResult> onSuccess) =>

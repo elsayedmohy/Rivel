@@ -4,22 +4,22 @@ public class OfferService(
     ApplicationDbContext dbContext,
     OfferMapper mapper) : IOfferService
 {
-    public async Task<OfferOperationResult> CreateAsync(Guid carrierId, Guid shipmentRequestId, CreateOfferDto dto)
+    public async Task<Result<OfferDto>> CreateAsync(Guid carrierId, Guid shipmentRequestId, CreateOfferDto dto)
     {
         var request = await dbContext.ShipmentRequests
             .FirstOrDefaultAsync(r => r.Id == shipmentRequestId);
         if (request is null)
-            return OfferOperationResult.Failure(
-                OfferOperationError.NotFound, "Shipment request not found.");
+            return Result.Failure(
+                OperationError.NotFound, "Shipment request not found.");
 
         if (request.CargoOwnerId == carrierId)
-            return OfferOperationResult.Failure(
-                OfferOperationError.Invalid,
+            return Result.Failure(
+                OperationError.Invalid,
                 "You cannot offer on your own shipment request.");
 
         if (request.Status != ShipmentRequestStatus.Open)
-            return OfferOperationResult.Failure(
-                OfferOperationError.Conflict,
+            return Result.Failure(
+                OperationError.Conflict,
                 "This shipment request is no longer open for offers.");
 
         var hasActiveOffer = await dbContext.Offers.AnyAsync(o =>
@@ -27,29 +27,33 @@ public class OfferService(
             o.CarrierId == carrierId &&
             (o.Status == OfferStatus.Pending || o.Status == OfferStatus.Accepted));
         if (hasActiveOffer)
-            return OfferOperationResult.Failure(
-                OfferOperationError.Conflict,
+            return Result.Failure(
+                OperationError.Conflict,
                 "You already have an active offer on this shipment request.");
 
         var vessel = await dbContext.Vessels
             .Include(v => v.CarrierProfile)
             .FirstOrDefaultAsync(v => v.Id == dto.VesselId);
         if (vessel is null)
-            return OfferOperationResult.Failure(
-                OfferOperationError.Invalid, "Vessel not found.");
+            return Result.Failure(
+                OperationError.Invalid, "Vessel not found.");
 
         if (vessel.CarrierProfile.UserId != carrierId)
-            return OfferOperationResult.Failure(
-                OfferOperationError.Invalid, "You can only offer a vessel you own.");
+            return Result.Failure(
+                OperationError.Invalid, "You can only offer a vessel you own.");
 
         if (vessel.Status != VesselStatus.Available)
-            return OfferOperationResult.Failure(
-                OfferOperationError.Invalid, "The chosen vessel is not available.");
+            return Result.Failure(
+                OperationError.Invalid, "The chosen vessel is not available.");
 
         var carrier = await dbContext.Users
             .Include(u => u.CarrierProfile)
             .FirstAsync(u => u.Id == carrierId);
 
+        if (request.Weight > vessel.Capacity)
+            return Result.Failure(OperationError.BadRequest, 
+                $"Vessel capacity ({vessel.Capacity} tons) is less than cargo weight ({request.Weight} tons).");
+        
         var offer = new Offer
         {
             Id = Guid.NewGuid(),
@@ -65,7 +69,7 @@ public class OfferService(
         dbContext.Offers.Add(offer);
         await dbContext.SaveChangesAsync();
 
-        return OfferOperationResult.Success(mapper.ToDto(offer));
+        return Result<OfferDto>.Success(mapper.ToDto(offer));
     }
 
     public async Task<List<OfferDto>?> GetForRequestAsync(Guid shipmentRequestId, Guid viewerId)
@@ -114,7 +118,7 @@ public class OfferService(
             .ToListAsync();
     }
 
-    public async Task<OfferOperationResult> AcceptAsync(Guid cargoOwnerId, Guid offerId)
+    public async Task<Result<OfferDto>> AcceptAsync(Guid cargoOwnerId, Guid offerId)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
@@ -125,7 +129,7 @@ public class OfferService(
         if (offer is null)
         {
             await transaction.RollbackAsync();
-            return OfferOperationResult.Failure(OfferOperationError.NotFound, "Offer not found.");
+            return Result.Failure(OperationError.NotFound, "Offer not found.");
         }
 
         var request = await dbContext.ShipmentRequests
@@ -139,21 +143,21 @@ public class OfferService(
         if (request is null || request.CargoOwnerId != cargoOwnerId)
         {
             await transaction.RollbackAsync();
-            return OfferOperationResult.Failure(OfferOperationError.NotFound, "Offer not found.");
+            return Result.Failure(OperationError.NotFound, "Offer not found.");
         }
 
         if (request.Status != ShipmentRequestStatus.Open)
         {
             await transaction.RollbackAsync();
-            return OfferOperationResult.Failure(OfferOperationError.Conflict,
+            return Result.Failure(OperationError.Conflict,
                 "This shipment request is no longer open for offers.");
         }
 
         if (offer.Status != OfferStatus.Pending)
         {
             await transaction.RollbackAsync();
-            return OfferOperationResult.Failure(
-                OfferOperationError.Conflict,
+            return Result.Failure(
+                OperationError.Conflict,
                 "This offer is no longer pending.");
         }
 
@@ -168,15 +172,15 @@ public class OfferService(
         if (vessel is null)
         {
             await transaction.RollbackAsync();
-            return OfferOperationResult.Failure(
-                OfferOperationError.Invalid,
+            return Result.Failure(
+                OperationError.Invalid,
                 "The offer's vessel no longer exists.");
         }
 
         if (vessel.Status != VesselStatus.Available)
         {
             await transaction.RollbackAsync();
-            return OfferOperationResult.Failure(OfferOperationError.Conflict,
+            return Result.Failure(OperationError.Conflict,
                 "The offer's vessel is no longer available.");
         }
 
@@ -205,6 +209,6 @@ public class OfferService(
         await dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
 
-        return OfferOperationResult.Success(mapper.ToDto(offer));
+        return Result<OfferDto>.Success(mapper.ToDto(offer));
     }
 }
