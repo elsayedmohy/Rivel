@@ -1,27 +1,37 @@
-using RiverLine.Api.Mappers;
-
 namespace RiverLine.Api.Services.ShipmentRequests;
 
 public class ShipmentRequestService(
     ApplicationDbContext dbContext,
     ShipmentRequestMapper mapper) : IShipmentRequestService
 {
-    public async Task<ShipmentRequestDto> CreateAsync(Guid cargoOwnerId, CreateShipmentRequestDto dto)
+    public async Task<Result<ShipmentRequestDto>> CreateAsync(Guid cargoOwnerId, CreateShipmentRequestDto dto)
     {
+        var berths = await dbContext.NileBerths
+            .Where(x => x.Id == dto.OriginNileBerthId || x.Id == dto.DestinationNileBerthId)
+            .ToListAsync();
+
+        var originNileBerth = berths.FirstOrDefault(x => x.Id == dto.OriginNileBerthId);
+        if (originNileBerth is null)
+            return Result.Failure(OperationError.NotFound, "Origin Nile Berth not found.");
+
+        var destinationNileBerth = berths.FirstOrDefault(x => x.Id == dto.DestinationNileBerthId);
+        if (destinationNileBerth is null)
+            return Result.Failure(OperationError.NotFound, "Destination Nile Berth not found.");
+
         var entity = new ShipmentRequest
         {
             Id = Guid.NewGuid(),
             CargoOwnerId = cargoOwnerId,
             CargoType = dto.CargoType,
             Weight = dto.Weight,
-            Origin = dto.Origin,
-            Destination = dto.Destination,
+            OriginNileBerth = originNileBerth,
+            DestinationNileBerth = destinationNileBerth,
             RequestedDate = dto.RequestedDate,
             Status = ShipmentRequestStatus.Open
         };
         dbContext.ShipmentRequests.Add(entity);
         await dbContext.SaveChangesAsync();
-        return mapper.ToDto(entity);
+        return Result<ShipmentRequestDto>.Success(mapper.ToDto(entity));
     }
 
     public async Task<List<ShipmentRequestDto>> GetOpenAsync()
@@ -32,8 +42,8 @@ public class ShipmentRequestService(
                 x.Id,
                 x.CargoType,
                 x.Weight,
-                x.Origin,
-                x.Destination,
+                x.OriginNileBerth,
+                x.DestinationNileBerth,
                 x.RequestedDate,
                 x.Status.ToString(),
                 x.CargoOwnerId,
@@ -49,8 +59,8 @@ public class ShipmentRequestService(
                 x.Id,
                 x.CargoType,
                 x.Weight,
-                x.Origin,
-                x.Destination,
+                x.OriginNileBerth,
+                x.DestinationNileBerth,
                 x.RequestedDate,
                 x.Status.ToString(),
                 x.CargoOwnerId,
@@ -66,8 +76,8 @@ public class ShipmentRequestService(
                 x.Id,
                 x.CargoType,
                 x.Weight,
-                x.Origin,
-                x.Destination,
+                x.OriginNileBerth,
+                x.DestinationNileBerth,
                 x.RequestedDate,
                 x.Status.ToString(),
                 x.CargoOwnerId,

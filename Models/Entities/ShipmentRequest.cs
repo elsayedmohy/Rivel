@@ -7,8 +7,10 @@ public class ShipmentRequest
     public User CargoOwner { get; set; } = default!;
     public string CargoType { get; set; } = default!;
     public double Weight { get; set; }
-    public string Origin { get; set; } = default!;
-    public string Destination { get; set; } = default!;
+    public Guid OriginBerthId { get; set; }
+    public NileBerth OriginNileBerth { get; set; } = default!;
+    public Guid DestinationBerthId { get; set; }
+    public NileBerth DestinationNileBerth { get; set; } = default!;
     public DateOnly RequestedDate { get; set; }
     public ShipmentRequestStatus Status { get; set; } = ShipmentRequestStatus.Open;
 

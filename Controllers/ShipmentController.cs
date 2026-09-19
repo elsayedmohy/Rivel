@@ -1,4 +1,3 @@
-using RiverLine.Api.Services.Shipments;
 
 namespace RiverLine.Api.Controllers;
 

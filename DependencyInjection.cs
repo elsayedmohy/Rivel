@@ -1,6 +1,3 @@
-using RiverLine.Api.Services.CarrierRoutes;
-using RiverLine.Api.Services.Vessels;
-
 namespace RiverLine.Api;
 
 public static class DependencyInjection
@@ -76,6 +73,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IOfferService, OfferService>();
         builder.Services.AddScoped<IRatingService, RatingService>();
         builder.Services.AddScoped<ICarrierRouteService, CarrierRouteService>();
+        builder.Services.AddScoped<INileBerthService, NileBerthService>();
         builder.Services.AddScoped<ShipmentRequestMapper>();
         builder.Services.AddScoped<ShipmentMapper>();
         builder.Services.AddScoped<OfferMapper>();

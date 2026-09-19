@@ -1,3 +1,8 @@
 namespace RiverLine.Api.Models.Dtos.CarrierRoute;
 
-public record CarrierRouteDto(Guid Id, string Origin, string Destination, bool IsActive);
+public record CarrierRouteDto(
+    Guid Id,
+    NileBerth OriginNileBerth,
+    NileBerth DestinationNileBerth,
+    bool IsActive
+    );

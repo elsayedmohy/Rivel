@@ -1,5 +1,3 @@
-using RiverLine.Api.Services.Vessels;
-
 namespace RiverLine.Api.Controllers;
 
 [ApiController]

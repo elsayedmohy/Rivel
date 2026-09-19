@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
-using RiverLine.Api.Extensions;
-using RiverLine.Api.Services.ShipmentRequests;
-
 namespace RiverLine.Api.Controllers;
 
 [ApiController]
@@ -19,7 +15,7 @@ public class ShipmentRequestsController(IShipmentRequestService service) : Contr
             return ValidationProblem(new ValidationProblemDetails(validationResult.ToDictionary()));
         
         var result = await service.CreateAsync(User.GetUserId(),dto);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        return CreatedAtAction(nameof(GetById), new { id = result?.Data?.Id }, result);
 
     }
     

@@ -1,6 +1,4 @@
 ﻿
-using Microsoft.AspNetCore.Diagnostics;
-
 namespace RiverLine.Api.Middleware;
 
 public sealed class GlobalExceptionHandler(

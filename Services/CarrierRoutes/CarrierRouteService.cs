@@ -6,7 +6,11 @@ public class CarrierRouteService(ApplicationDbContext dbContext) : ICarrierRoute
     {
         var routes = await dbContext.CarrierRoutes
             .Where(r => r.CarrierProfile.UserId == carrierId)
-            .Select(r => new CarrierRouteDto(r.Id, r.Origin, r.Destination, r.IsActive))
+            .Select(r => new CarrierRouteDto(
+                r.Id,
+                r.OriginNileBerth,
+                r.DestinationNileBerth,
+                r.IsActive))
             .ToListAsync();
 
         return Result<List<CarrierRouteDto>>.Success(routes);
@@ -14,8 +18,8 @@ public class CarrierRouteService(ApplicationDbContext dbContext) : ICarrierRoute
 
     public async Task<Result<CarrierRouteDto>> AddRouteAsync(Guid carrierId, CreateCarrierRouteDto dto)
     {
-        if (dto.Origin.Trim().Equals(dto.Destination.Trim(), StringComparison.OrdinalIgnoreCase))
-            return Result.Failure(OperationError.Forbidden, "Origin and destination cannot be the same.");
+        if (dto.OriginNileBerthId == dto.DestinationNileBerthId)
+            return Result.Failure(OperationError.BadRequest, "Origin and destination cannot be the same.");
 
         var profile = await dbContext.CarrierProfiles
             .SingleOrDefaultAsync(p => p.UserId == carrierId);
@@ -23,10 +27,22 @@ public class CarrierRouteService(ApplicationDbContext dbContext) : ICarrierRoute
         if (profile is null)
             return Result.Failure(OperationError.NotFound, "Carrier profile not found.");
 
+        var berths = await dbContext.NileBerths
+            .Where(x => x.Id == dto.OriginNileBerthId || x.Id == dto.DestinationNileBerthId)
+            .ToListAsync();
+
+        var originNileBerth = berths.FirstOrDefault(x => x.Id == dto.OriginNileBerthId);
+        if (originNileBerth is null)
+            return Result.Failure(OperationError.NotFound, "Origin Nile Berth not found.");
+
+        var destinationNileBerth = berths.FirstOrDefault(x => x.Id == dto.DestinationNileBerthId);
+        if (destinationNileBerth is null)
+            return Result.Failure(OperationError.NotFound, "Destination Nile Berth not found.");
+
         var exists = await dbContext.CarrierRoutes.AnyAsync(r =>
             r.CarrierProfileId == profile.Id &&
-            r.Origin.ToLower() == dto.Origin.Trim().ToLower() &&
-            r.Destination.ToLower() == dto.Destination.Trim().ToLower());
+            r.OriginBerthId == dto.OriginNileBerthId &&
+            r.DestinationBerthId == dto.DestinationNileBerthId);
         if (exists)
             return Result.Failure(OperationError.Conflict, "You already have this route.");
         
@@ -34,8 +50,8 @@ public class CarrierRouteService(ApplicationDbContext dbContext) : ICarrierRoute
         {
             Id = Guid.NewGuid(),
             CarrierProfileId = profile.Id,
-            Origin = dto.Origin,
-            Destination = dto.Destination,
+            OriginNileBerth = originNileBerth,
+            DestinationNileBerth = destinationNileBerth,
             IsActive = true
         };
 
@@ -43,7 +59,7 @@ public class CarrierRouteService(ApplicationDbContext dbContext) : ICarrierRoute
         await dbContext.SaveChangesAsync();
 
         return Result<CarrierRouteDto>.Success(
-            new CarrierRouteDto(route.Id, route.Origin, route.Destination, route.IsActive));
+            new CarrierRouteDto(route.Id, route.OriginNileBerth, route.DestinationNileBerth, route.IsActive));
     }
 
     public async Task<Result<bool>> DeleteRouteAsync(Guid routeId, Guid carrierId)
@@ -68,7 +84,7 @@ public class CarrierRouteService(ApplicationDbContext dbContext) : ICarrierRoute
     {
         var routes = await dbContext.CarrierRoutes
             .Where(r => r.CarrierProfile.UserId == carrierId && r.IsActive)
-            .Select(r => new { r.Origin, r.Destination })
+            .Select(r => new { OriginPort = r.OriginNileBerth, DestinationPort = r.DestinationNileBerth })
             .ToListAsync();
 
         if (!routes.Any())
@@ -77,15 +93,15 @@ public class CarrierRouteService(ApplicationDbContext dbContext) : ICarrierRoute
         var requests = await dbContext.ShipmentRequests
             .Where(r => r.Status == ShipmentRequestStatus.Open &&
                         routes.Any(route =>
-                            route.Origin == r.Origin &&
-                            route.Destination == r.Destination))
+                            route.OriginPort == r.OriginNileBerth &&
+                            route.DestinationPort == r.DestinationNileBerth))
             .Select(r => 
                 new ShipmentRequestDto(
                 r.Id, 
                 r.CargoType,
                 r.Weight, 
-                r.Origin, 
-                r.Destination,
+                r.OriginNileBerth, 
+                r.DestinationNileBerth,
                 r.RequestedDate,
                 r.Status.ToString(),
                 r.CargoOwnerId,

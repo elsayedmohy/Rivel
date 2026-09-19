@@ -1,3 +1,6 @@
 namespace RiverLine.Api.Models.Dtos.CarrierRoute;
 
-public record CreateCarrierRouteDto(string Origin, string Destination);
+public record CreateCarrierRouteDto(
+    Guid OriginNileBerthId,
+    Guid DestinationNileBerthId
+);

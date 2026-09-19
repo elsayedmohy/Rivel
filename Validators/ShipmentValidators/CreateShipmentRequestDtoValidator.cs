@@ -15,24 +15,22 @@ public sealed class CreateShipmentRequestValidator
             .GreaterThan(0)
             .WithMessage("Weight must be greater than 0.");
 
-        RuleFor(x => x.Origin)
+        RuleFor(x => x.OriginNileBerthId)
             .NotEmpty()
-            .WithMessage("Origin is required.")
-            .MaximumLength(200)
-            .WithMessage("Origin must not exceed 200 characters.");
+            .WithMessage("Origin Port is required.")
+            .WithMessage("Origin Port must not exceed 200 characters.");
 
-        RuleFor(x => x.Destination)
+        RuleFor(x => x.DestinationNileBerthId)
             .NotEmpty()
-            .WithMessage("Destination is required.")
-            .MaximumLength(200)
-            .WithMessage("Destination must not exceed 200 characters.");
+            .WithMessage("Destination Port is required.")
+            .WithMessage("Destination Port must not exceed 200 characters.");
 
         RuleFor(x => x)
             .Must(x => !string.Equals(
-                x.Origin.Trim(),
-                x.Destination.Trim(),
+                x.OriginNileBerthId.ToString().Trim(),
+                x.DestinationNileBerthId.ToString().Trim(),
                 StringComparison.OrdinalIgnoreCase))
-            .WithMessage("Origin and destination must be different.");
+            .WithMessage("OriginPort and destination must be different.");
 
         RuleFor(x => x.RequestedDate)
             .NotEmpty()

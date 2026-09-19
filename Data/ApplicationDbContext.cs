@@ -10,12 +10,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Offer> Offers => Set<Offer>();
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<Rating> Ratings => Set<Rating>();
+    public DbSet<NileBerth> NileBerths => Set<NileBerth>();
     
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
+        NileBerthSeed.Seed(modelBuilder);
+        
         modelBuilder.Entity<Offer>()
             .HasOne(o => o.Shipment)
             .WithOne(s => s.Offer)
