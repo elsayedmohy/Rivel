@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RiverLine.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e0083aeb25e7330736b3c40c166c7f92091d3814")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+51bc45dcde9ee5d3e77fde4e6267ce528d3fa277")]
 [assembly: System.Reflection.AssemblyProductAttribute("RiverLine.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RiverLine.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

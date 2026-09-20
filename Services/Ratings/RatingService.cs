@@ -35,6 +35,15 @@ public class RatingService(ApplicationDbContext dbContext) : IRatingService
             Comment = dto.Comment
         };
 
+        var profile = await dbContext.CarrierProfiles
+            .FirstOrDefaultAsync(p => p.UserId == rating.CarrierId);
+        if (profile is null)
+            return Result.Failure(OperationError.NotFound, "Carrier not found.");
+        profile.OverallRating = 
+            ((profile.OverallRating * profile.RatingCount) + dto.Score) 
+            / (profile.RatingCount + 1);
+        profile.RatingCount++;
+        
         dbContext.Ratings.Add(rating);
         await dbContext.SaveChangesAsync();
 
