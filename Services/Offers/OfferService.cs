@@ -1,4 +1,3 @@
-
 namespace RiverLine.Api.Services.Offers;
 
 public class OfferService(
@@ -10,6 +9,8 @@ public class OfferService(
     public async Task<Result<OfferDto>> CreateAsync(Guid carrierId, Guid shipmentRequestId, CreateOfferDto dto)
     {
         var request = await dbContext.ShipmentRequests
+            .Include(r => r.OriginNileBerth)
+            .Include(r => r.DestinationNileBerth)
             .FirstOrDefaultAsync(r => r.Id == shipmentRequestId);
         if (request is null)
             return Result.Failure(
@@ -54,9 +55,9 @@ public class OfferService(
             .FirstAsync(u => u.Id == carrierId);
 
         if (request.Weight > vessel.Capacity)
-            return Result.Failure(OperationError.BadRequest, 
+            return Result.Failure(OperationError.BadRequest,
                 $"Vessel capacity ({vessel.Capacity} tons) is less than cargo weight ({request.Weight} tons).");
-        
+
         var offer = new Offer
         {
             Id = Guid.NewGuid(),
@@ -72,17 +73,32 @@ public class OfferService(
         dbContext.Offers.Add(offer);
         await dbContext.SaveChangesAsync();
         var cargoOwner = await dbContext.Users.FindAsync(request.CargoOwnerId);
-        var originName = offer.ShipmentRequest.OriginNileBerth.Name;
-        var destName = offer.ShipmentRequest.DestinationNileBerth.Name;
+        var originName = request.OriginNileBerth.Name;
+        var destName = request.DestinationNileBerth.Name;
 
         await hubContext.Clients.User(request.CargoOwnerId.ToString())
-            .SendAsync("NewOffer", new { message = "لديك عرض جديد" });
-        
-        await emailService.SendNewOfferNotificationAsync(
-            cargoOwner!.Email!,
-            cargoOwner.Name,
-            originName,
-            destName);
+            .SendAsync("NewOffer", new
+            {
+                title = "New Offer Received",
+                message = $"{carrier.Name} offered {offer.Price} EGP for your shipment from {originName} to {destName}," +
+                          $" proposing pickup on {offer.ProposedPickupDate:dd MMM yyyy}."
+
+            }
+            );
+        try
+        {
+            await emailService.SendNewOfferNotificationAsync(
+                cargoOwner!.Email!,
+                cargoOwner.Name,
+                originName,
+                destName);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure(OperationError.Invalid,
+                $"Error , something went wrong: {ex.Message}");
+        }
+
         return Result<OfferDto>.Success(mapper.ToDto(offer));
     }
 
@@ -221,25 +237,32 @@ public class OfferService(
             VesselId = vessel.Id,
             Status = ShipmentStatus.Matched
         };
-        
+
         dbContext.Shipments.Add(shipment);
         offer.Shipment = shipment;
         await dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
 
-        
+
         var carrier = await dbContext.Users.FindAsync(offer.Carrier.Id);
 
         await hubContext.Clients.User(offer.Carrier.Id.ToString())
-            .SendAsync("OfferAccepted", new { message = "تم قبول عرضك" });
-        
+            .SendAsync("OfferAccepted", 
+                new
+                {
+                    title = "Offer Accepted",
+                    message = $"Your offer of {offer.Price:N0} EGP for the shipment from {offer.ShipmentRequest.OriginNileBerth.Name} to" +
+                              $" {offer.ShipmentRequest.DestinationNileBerth.Name} has been accepted by the cargo owner."
+                }
+                );
+
         await emailService.SendOfferAcceptedNotificationAsync(
             carrier!.Email!,
             carrier.Name,
             offer.ShipmentRequest.OriginNileBerth.Name,
             offer.ShipmentRequest.DestinationNileBerth.Name,
             offer.ProposedPickupDate);
-        
+
         return Result<OfferDto>.Success(mapper.ToDto(offer));
     }
 }

@@ -12,7 +12,6 @@ global using Microsoft.OpenApi;
 global using System.Text.Json.Serialization;
 global using FluentValidation;
 global using Resend;
-global using Microsoft.Extensions.Options;
 // ************************************************
 
 global using System.Text;

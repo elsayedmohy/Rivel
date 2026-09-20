@@ -65,6 +65,7 @@ public static class DependencyInjection
     public static WebApplicationBuilder AddApplicationServices(this WebApplicationBuilder builder)
     {
         builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+        builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Resend"));
         builder.Services.AddScoped<ITokenService, TokenService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IShipmentRequestService, ShipmentRequestService>();
@@ -167,7 +168,8 @@ public static class DependencyInjection
                 policy
                     .WithOrigins(origins)
                     .AllowAnyHeader()
-                    .AllowAnyMethod();
+                    .AllowAnyMethod()
+                    .AllowCredentials();
             });
         });
         return builder;

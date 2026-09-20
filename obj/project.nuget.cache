@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "ev78cn3Shis=",
+  "dgSpecHash": "BnJ7ei9NPD0=",
   "success": true,
   "projectFilePath": "/home/sayed/Code/BL/RiverLine/RiverLine.Api/RiverLine.Api.csproj",
   "expectedPackageFiles": [
@@ -10,7 +10,6 @@
     "/home/sayed/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/10.0.12/microsoft.aspnetcore.authentication.jwtbearer.10.0.12.nupkg.sha512",
     "/home/sayed/.nuget/packages/microsoft.aspnetcore.identity.entityframeworkcore/10.0.12/microsoft.aspnetcore.identity.entityframeworkcore.10.0.12.nupkg.sha512",
     "/home/sayed/.nuget/packages/microsoft.aspnetcore.openapi/10.0.12/microsoft.aspnetcore.openapi.10.0.12.nupkg.sha512",
-    "/home/sayed/.nuget/packages/microsoft.aspnetcore.signalr/1.2.13/microsoft.aspnetcore.signalr.1.2.13.nupkg.sha512",
     "/home/sayed/.nuget/packages/microsoft.bcl.cryptography/10.0.2/microsoft.bcl.cryptography.10.0.2.nupkg.sha512",
     "/home/sayed/.nuget/packages/microsoft.build.framework/18.0.2/microsoft.build.framework.18.0.2.nupkg.sha512",
     "/home/sayed/.nuget/packages/microsoft.codeanalysis.analyzers/3.11.0/microsoft.codeanalysis.analyzers.3.11.0.nupkg.sha512",
@@ -54,18 +53,5 @@
     "/home/sayed/.nuget/packages/system.identitymodel.tokens.jwt/8.19.2/system.identitymodel.tokens.jwt.8.19.2.nupkg.sha512",
     "/home/sayed/.nuget/packages/system.linq.dynamic.core/1.7.4/system.linq.dynamic.core.1.7.4.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1510",
-      "level": "Warning",
-      "message": "PackageReference Microsoft.AspNetCore.SignalR will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.",
-      "projectPath": "/home/sayed/Code/BL/RiverLine/RiverLine.Api/RiverLine.Api.csproj",
-      "warningLevel": 1,
-      "filePath": "/home/sayed/Code/BL/RiverLine/RiverLine.Api/RiverLine.Api.csproj",
-      "libraryId": "Microsoft.AspNetCore.SignalR",
-      "targetGraphs": [
-        "net10.0"
-      ]
-    }
-  ]
+  "logs": []
 }

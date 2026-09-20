@@ -1,9 +1,9 @@
 namespace RiverLine.Api.Services.Email;
 
 
-public class EmailService(IOptions<ResendSettings> settings) : IEmailService
+public class EmailService(IOptions<EmailSettings> settings) : IEmailService
 {
-    private readonly ResendSettings _settings = settings.Value;
+    private readonly EmailSettings _settings = settings.Value;
 
     public async Task SendNewOfferNotificationAsync(
         string toEmail, string cargoOwnerName, string origin, string destination)

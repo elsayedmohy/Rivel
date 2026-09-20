@@ -1,6 +1,6 @@
 namespace RiverLine.Api.Settings;
 
-public class ResendSettings
+public class EmailSettings
 {
     public string ApiKey { get; set; } = default!;
     public string FromEmail { get; set; } = default!;
