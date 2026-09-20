@@ -7,6 +7,7 @@ global using Microsoft.Extensions.Options;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Diagnostics;
 global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.SignalR;
 global using Microsoft.OpenApi;
 global using System.Text.Json.Serialization;
 global using FluentValidation;
@@ -22,6 +23,8 @@ global using System.Security.Claims;
 
 global using RiverLine.Api;
 global using RiverLine.Api.Common;
+global using RiverLine.Api.Hubs;
+global using RiverLine.Api.Providers;
 global using RiverLine.Api.Data.Seeds;
 global using RiverLine.Api.Models.Enums;
 global using RiverLine.Api.Models.Entities;

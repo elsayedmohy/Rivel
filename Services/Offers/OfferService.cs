@@ -3,6 +3,7 @@ namespace RiverLine.Api.Services.Offers;
 
 public class OfferService(
     ApplicationDbContext dbContext,
+    IHubContext<NotificationHub> hubContext,
     IEmailService emailService,
     OfferMapper mapper) : IOfferService
 {
@@ -74,6 +75,9 @@ public class OfferService(
         var originName = offer.ShipmentRequest.OriginNileBerth.Name;
         var destName = offer.ShipmentRequest.DestinationNileBerth.Name;
 
+        await hubContext.Clients.User(request.CargoOwnerId.ToString())
+            .SendAsync("NewOffer", new { message = "لديك عرض جديد" });
+        
         await emailService.SendNewOfferNotificationAsync(
             cargoOwner!.Email!,
             cargoOwner.Name,
@@ -224,8 +228,11 @@ public class OfferService(
         await transaction.CommitAsync();
 
         
-        var carrier = await dbContext.Users.FindAsync(offer.CarrierId);
+        var carrier = await dbContext.Users.FindAsync(offer.Carrier.Id);
 
+        await hubContext.Clients.User(offer.Carrier.Id.ToString())
+            .SendAsync("OfferAccepted", new { message = "تم قبول عرضك" });
+        
         await emailService.SendOfferAcceptedNotificationAsync(
             carrier!.Email!,
             carrier.Name,

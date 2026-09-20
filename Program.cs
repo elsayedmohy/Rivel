@@ -7,7 +7,8 @@ builder.AddControllers()
     .AddDatabase()
     .AddApplicationServices()
     .AddAuthenticationServices()
-    .AddCors();
+    .AddCors()
+    .AddSignalRServices();
 
 var app = builder.Build();
 
@@ -25,7 +26,7 @@ app.UseHttpsRedirection();
 app.UseCors("RiverLinePolicy");
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapControllers();
 
 app.Run();

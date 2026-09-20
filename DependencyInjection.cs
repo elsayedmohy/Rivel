@@ -1,5 +1,3 @@
-using RiverLine.Api.Services.Email;
-
 namespace RiverLine.Api;
 
 public static class DependencyInjection
@@ -82,6 +80,13 @@ public static class DependencyInjection
         builder.Services.AddScoped<OfferMapper>();
         return builder;
     }
+    
+    public static WebApplicationBuilder AddSignalRServices(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddSignalR();
+        builder.Services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
+        return builder;
+    }
 
     public static WebApplicationBuilder AddAuthenticationServices(this WebApplicationBuilder builder)
     {
@@ -128,6 +133,20 @@ public static class DependencyInjection
                     OnTokenValidated = context =>
                     {
                         Console.WriteLine("JWT VALIDATED SUCCESSFULLY");
+                        return Task.CompletedTask;
+                    }
+                };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
                         return Task.CompletedTask;
                     }
                 };
