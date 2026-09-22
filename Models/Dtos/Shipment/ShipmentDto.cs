@@ -6,8 +6,8 @@ public record ShipmentDto(
     Guid ShipmentRequestId,
     string CargoType,
     double Weight,
-    NileBerth OriginNileBerth,
-    NileBerth DestinationNileBerth,
+    NileBerthDto.NileBerthDto OriginNileBerth,
+    NileBerthDto.NileBerthDto DestinationNileBerth,
     DateOnly RequestedDate,
     Guid CargoOwnerId,
     string CargoOwnerName,
@@ -17,5 +17,8 @@ public record ShipmentDto(
     Guid VesselId,
     VesselType VesselType,
     string CarrierCompanyName,
-    RatingDto? Rating
+    bool IsRated,
+    ShipmentRatingDto? Rating
 );
+
+public record ShipmentRatingDto(int Score, string? Comment, DateTime CreatedAt);

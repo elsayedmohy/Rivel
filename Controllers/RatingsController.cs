@@ -19,9 +19,9 @@ public class RatingsController(IRatingService service) : ControllerBase
     [HttpGet("{carrierId:guid}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetCarrierRatings(
-        Guid carrierId)
+        Guid carrierId , [FromQuery] CarrierRatingsQuery query)
     {
-        var result = await service.GetCarrierRatingsAsync(carrierId);
+        var result = await service.GetMyRatingsAsync(carrierId,query);
 
         return this.ToActionResult(result);
     }

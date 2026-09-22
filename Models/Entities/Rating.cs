@@ -9,4 +9,6 @@ public class Rating
     public Guid CarrierId { get; set; }
     public int Score { get; set; }
     public string? Comment { get; set; }
+    
+    public DateTime CreatedAt { get; set; }
 }

@@ -12,22 +12,14 @@ public class ShipmentsController(IShipmentService service) : ControllerBase
         UpdateShipmentStatusDto dto)
     {
         var result = await service.UpdateStatusAsync(shipmentId, User.GetUserId(), dto.NewStatus);
-        return result.Succeeded
-            ? Ok(result.Data)
-            : result.Error switch
-            {
-                ShipmentOperationError.NotFound => NotFound(result.Message),
-                ShipmentOperationError.Forbidden => Forbid(),
-                ShipmentOperationError.Conflict => Conflict(result.Message),
-                _ => BadRequest(result.Message)
-            };
+        return this.ToActionResult(result);
     }
     
     
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] bool? rated = null)
     {
-        var result = await service.GetAllAsync(User.GetUserId());
+        var result = await service.GetAllAsync(User.GetUserId(),  rated);
         return this.ToActionResult(result);
     }
 

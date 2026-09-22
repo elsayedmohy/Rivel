@@ -3,7 +3,9 @@ using RiverLine.Api.Models.Dtos;
 
 namespace RiverLine.Api.Services.CarrierRoutes;
 
-public class CarrierRouteService(ApplicationDbContext dbContext) : ICarrierRouteService
+public class CarrierRouteService(ApplicationDbContext dbContext,
+    NileBerthMapper  nileBerthMapper
+) : ICarrierRouteService
 {
     public async Task<Result<List<CarrierRouteDto>>> GetMyRoutesAsync(Guid carrierId)
     {
@@ -221,8 +223,8 @@ public class CarrierRouteService(ApplicationDbContext dbContext) : ICarrierRoute
         r.OffersCount,
         r.LowestOfferPrice,
         IsNew: r.CreatedAt >= newSince,
-        ToBerthDto(r.Origin),
-        ToBerthDto(r.Destination),
+        nileBerthMapper.ToBerthDto(r.Origin),
+        nileBerthMapper.ToBerthDto(r.Destination),
         FittingVesselsCount: capacities.Count(c => c >= r.Weight),
         MaxVesselCapacity: maxCapacity
     )).ToList();
@@ -230,8 +232,5 @@ public class CarrierRouteService(ApplicationDbContext dbContext) : ICarrierRoute
     return Result<SuggestedRequestsPageDto>.Success(
         new SuggestedRequestsPageDto(items, totalCount, page, pageSize, routeFilters));
 }
-    private static NileBerthDto ToBerthDto(NileBerth b) => new(
-        b.Id, b.Name, b.ArabicName, b.Governorate, b.Latitude, b.Longitude,
-        b.Type.ToString(), b.Axis.ToString(), b.CoordinateAccuracy.ToString());
-    
+   
 }

@@ -1,7 +1,9 @@
 namespace RiverLine.Api.Services.Shipments;
 
 public class ShipmentService(ApplicationDbContext dbContext,
-    ShipmentMapper shipmentMapper) : IShipmentService
+    ShipmentMapper shipmentMapper,
+    NileBerthMapper nileBerthMapper
+    ) : IShipmentService
 {
     
     private static readonly Dictionary<ShipmentStatus, ShipmentStatus> AllowedTransitions = new()
@@ -11,7 +13,7 @@ public class ShipmentService(ApplicationDbContext dbContext,
         [ShipmentStatus.InTransit] = ShipmentStatus.Delivered,
     };
     
-    public async Task<ShipmentOperationResult> UpdateStatusAsync(
+    public async Task<Result<ShipmentDto>> UpdateStatusAsync(
         Guid shipmentId,
         Guid carrierId,
         ShipmentStatus newStatus)
@@ -21,8 +23,8 @@ public class ShipmentService(ApplicationDbContext dbContext,
 
         if (shipment is null)
         {
-            return ShipmentOperationResult.Failure(
-                ShipmentOperationError.NotFound,
+            return Result.Failure(
+                OperationError.NotFound,
                 "Shipment not found.");
         }
 
@@ -33,8 +35,8 @@ public class ShipmentService(ApplicationDbContext dbContext,
 
         if (vesselOwnerId != carrierId)
         {
-            return ShipmentOperationResult.Failure(
-                ShipmentOperationError.Forbidden,
+            return Result.Failure(
+                OperationError.Forbidden,
                 "You are not allowed to update this shipment.");
         }
 
@@ -43,32 +45,56 @@ public class ShipmentService(ApplicationDbContext dbContext,
                 out var expectedNext) ||
             expectedNext != newStatus)
         {
-            return ShipmentOperationResult.Failure(
-                ShipmentOperationError.Conflict,
+            return Result.Failure(
+                OperationError.Conflict,
                 $"Cannot transition from {shipment.Status} to {newStatus}.");
         }
 
         shipment.Status = newStatus;
 
+        if (newStatus == ShipmentStatus.Delivered)
+        {
+            var vessel = await dbContext.Vessels
+                .FirstOrDefaultAsync(v => v.Id == shipment.VesselId);
+            if (vessel is null)
+            {
+                return Result.Failure(
+                    OperationError.NotFound,
+                    "Vessel not found.");
+            }
+
+            vessel.Status = VesselStatus.Available;
+        }
+
         await dbContext.SaveChangesAsync();
 
-        return ShipmentOperationResult.Success(shipmentMapper.ToDto(shipment));
+        return Result<ShipmentDto>.Success(shipmentMapper.ToDto(shipment));
     }
     
     
-    public async Task<Result<List<ShipmentDto>>> GetAllAsync(Guid userId)
+    public async Task<Result<List<ShipmentDto>>> GetAllAsync(Guid userId, bool? rated = null)
     {
-        var shipments = await dbContext.Shipments
+        var query = dbContext.Shipments
+            .AsNoTracking()
             .Where(x => x.ShipmentRequest.CargoOwnerId == userId
-                        || x.Vessel.CarrierProfile.UserId == userId)
+                        || x.Vessel.CarrierProfile.UserId == userId);
+
+        if (rated == false)
+            query = query.Where(s => s.Status == ShipmentStatus.Delivered && s.Rating == null);
+        else if (rated == true)
+            query = query.Where(s => s.Rating != null);
+
+        var items = await query
+            .OrderByDescending(s => s.ShipmentRequest.RequestedDate)
+            .ThenBy(s => s.Id)
             .Select(s => new ShipmentDto(
                 s.Id,
                 s.Status.ToString(),
                 s.ShipmentRequestId,
                 s.ShipmentRequest.CargoType,
                 s.ShipmentRequest.Weight,
-                s.ShipmentRequest.OriginNileBerth,
-                s.ShipmentRequest.DestinationNileBerth,
+                nileBerthMapper.ToBerthDto(s.ShipmentRequest.OriginNileBerth),
+                nileBerthMapper.ToBerthDto(s.ShipmentRequest.DestinationNileBerth),
                 s.ShipmentRequest.RequestedDate,
                 s.ShipmentRequest.CargoOwnerId,
                 s.ShipmentRequest.CargoOwner.Name,
@@ -78,17 +104,16 @@ public class ShipmentService(ApplicationDbContext dbContext,
                 s.VesselId,
                 s.Vessel.Type,
                 s.Vessel.CarrierProfile.CompanyName,
-                s.Rating == null ? null : new RatingDto(
-                    s.Rating.Id,
-                    s.Rating.ShipmentId,
+                s.Rating != null,
+                s.Rating == null ? null : new ShipmentRatingDto(
                     s.Rating.Score,
-                    s.Rating.Comment)
+                    s.Rating.Comment,
+                    s.Rating.CreatedAt)
             ))
             .ToListAsync();
 
-        return Result<List<ShipmentDto>>.Success(shipments);
+        return Result<List<ShipmentDto>>.Success(items);
     }
-
     public async Task<ShipmentDto?> GetByIdAsync(Guid id)
     {
         var shipment = await ShipmentsWithDetails().FirstOrDefaultAsync(s => s.Id == id);

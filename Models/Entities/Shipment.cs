@@ -10,7 +10,7 @@ public class Shipment
     public Guid VesselId { get; set; }
     public Vessel Vessel { get; set; } = default!;
     public ShipmentStatus Status { get; set; } = ShipmentStatus.Matched;
-
+    public bool IsRated { get; set; }
     public Rating? Rating { get; set; }
 }
 

@@ -34,5 +34,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithOne(s => s.ShipmentRequest)
             .HasForeignKey<Shipment>(s => s.ShipmentRequestId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        
+        modelBuilder.Entity<Rating>()
+       .Property(r => r.CreatedAt)
+       .HasDefaultValueSql("now() at time zone 'utc'");
     }
 }

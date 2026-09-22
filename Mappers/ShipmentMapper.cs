@@ -1,6 +1,6 @@
 namespace RiverLine.Api.Mappers;
 
-public class ShipmentMapper
+public class ShipmentMapper(NileBerthMapper nileberthMapper)
 {
     public ShipmentDto ToDto(Shipment s) => new(
         s.Id,
@@ -8,8 +8,8 @@ public class ShipmentMapper
         s.ShipmentRequestId,
         s.ShipmentRequest.CargoType,
         s.ShipmentRequest.Weight,
-        s.ShipmentRequest.OriginNileBerth,
-        s.ShipmentRequest.DestinationNileBerth,
+        nileberthMapper.ToBerthDto(s.ShipmentRequest.OriginNileBerth),
+        nileberthMapper.ToBerthDto(s.ShipmentRequest.DestinationNileBerth),
         s.ShipmentRequest.RequestedDate,
         s.ShipmentRequest.CargoOwnerId,
         s.ShipmentRequest.CargoOwner.Name,
@@ -19,12 +19,13 @@ public class ShipmentMapper
         s.VesselId,
         s.Vessel.Type,
         s.Vessel.CarrierProfile.CompanyName,
+        s.IsRated,
         s.Rating is null
             ? null
-            : new RatingDto(
-                s.Rating.Id,
-                s.Rating.ShipmentId,
+            : new ShipmentRatingDto(
                 s.Rating.Score,
-                s.Rating.Comment)
+                s.Rating.Comment,
+                s.Rating.CreatedAt
+            )
     );
 }

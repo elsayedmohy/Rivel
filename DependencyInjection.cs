@@ -79,6 +79,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<ShipmentRequestMapper>();
         builder.Services.AddScoped<ShipmentMapper>();
         builder.Services.AddScoped<OfferMapper>();
+        builder.Services.AddScoped<NileBerthMapper>();
         return builder;
     }
     
