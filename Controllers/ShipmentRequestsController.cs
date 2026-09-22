@@ -15,8 +15,7 @@ public class ShipmentRequestsController(IShipmentRequestService service) : Contr
             return ValidationProblem(new ValidationProblemDetails(validationResult.ToDictionary()));
         
         var result = await service.CreateAsync(User.GetUserId(),dto);
-        return CreatedAtAction(nameof(GetById), new { id = result?.Data?.Id }, result);
-
+        return this.ToActionResult(result);
     }
     
     [HttpGet("open")]

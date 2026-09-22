@@ -32,9 +32,9 @@ public class CarrierRoutesController(ICarrierRouteService routeService) : Contro
     }
 
     [HttpGet("suggested-requests")]
-    public async Task<IActionResult> GetSuggestedRequests()
+    public async Task<IActionResult> GetSuggestedRequests([FromQuery] SuggestedRequestsQuery query)
     {
-        var result = await routeService.GetSuggestedRequestsAsync(UserId);
+        var result = await routeService.GetSuggestedRequestsAsync(UserId  ,query);
         return this.ToActionResult(result);
     }
 }
