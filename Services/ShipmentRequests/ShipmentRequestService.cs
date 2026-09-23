@@ -2,7 +2,8 @@ namespace RiverLine.Api.Services.ShipmentRequests;
 
 public class ShipmentRequestService(
     ApplicationDbContext dbContext,
-    ShipmentRequestMapper mapper) : IShipmentRequestService
+    ShipmentRequestMapper mapper,
+    MatchNotificationQueue matchNotificationQueue) : IShipmentRequestService
 {
     public async Task<Result<ShipmentRequestDto>> CreateAsync(Guid cargoOwnerId, CreateShipmentRequestDto dto)
     {
@@ -31,6 +32,7 @@ public class ShipmentRequestService(
         };
         dbContext.ShipmentRequests.Add(entity);
         await dbContext.SaveChangesAsync();
+        await matchNotificationQueue.EnqueueAsync(entity.Id);
         return Result<ShipmentRequestDto>.Success(mapper.ToDto(entity));
     }
 

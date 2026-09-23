@@ -9,9 +9,13 @@ global using Microsoft.AspNetCore.Diagnostics;
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.SignalR;
 global using Microsoft.OpenApi;
+global using System.Text.Json;
 global using System.Text.Json.Serialization;
 global using FluentValidation;
 global using Resend;
+global using System.Globalization;
+global using System.Text.Encodings.Web;
+global using System.Text.RegularExpressions;
 // ************************************************
 
 global using System.Text;
@@ -35,7 +39,9 @@ global using RiverLine.Api.Models.Dtos.Rating;
 global using RiverLine.Api.Models.Dtos.Vessel;
 global using RiverLine.Api.Models.Dtos.CarrierRoute;
 global using RiverLine.Api.Models.Dtos.NileBerthDto;
+global using RiverLine.Api.Models.Dtos.NotificationsDto;
 global using RiverLine.Api.Data;
+global using RiverLine.Api.Services.Notifications;
 global using RiverLine.Api.Services.Auth;
 global using RiverLine.Api.Services.ShipmentRequests;
 global using RiverLine.Api.Services.Shipments;

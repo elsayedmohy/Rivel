@@ -12,8 +12,8 @@ using RiverLine.Api.Data;
 namespace RiverLine.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260923021210_EditVessels")]
-    partial class EditVessels
+    [Migration("20260923130951_AddNotifications")]
+    partial class AddNotifications
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -878,6 +878,41 @@ namespace RiverLine.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("RiverLine.Api.Models.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now() at time zone 'utc'");
+
+                    b.Property<string>("DataJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<Guid>("EntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "IsRead", "CreatedAt")
+                        .HasDatabaseName("IX_Notifications_User_Unread");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("RiverLine.Api.Models.Entities.Offer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1224,6 +1259,17 @@ namespace RiverLine.Api.Migrations
                     b.Navigation("DestinationNileBerth");
 
                     b.Navigation("OriginNileBerth");
+                });
+
+            modelBuilder.Entity("RiverLine.Api.Models.Entities.Notification", b =>
+                {
+                    b.HasOne("RiverLine.Api.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RiverLine.Api.Models.Entities.Offer", b =>

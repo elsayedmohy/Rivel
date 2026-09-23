@@ -11,6 +11,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<Rating> Ratings => Set<Rating>();
     public DbSet<NileBerth> NileBerths => Set<NileBerth>();
+    
+    public DbSet<Notification> Notifications => Set<Notification>();
+    
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -45,5 +48,17 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         modelBuilder.Entity<Vessel>()
             .HasIndex(v => new { v.CarrierProfileId, v.IsArchived });
+
+        modelBuilder.Entity<Notification>()
+            .HasIndex(n => new { n.UserId, n.IsRead, n.CreatedAt })
+            .HasDatabaseName("IX_Notifications_User_Unread");
+        
+        modelBuilder.Entity<Notification>()
+            .Property(n => n.DataJson)
+            .HasColumnType("jsonb");
+        
+        modelBuilder.Entity<Notification>()
+            .Property(n => n.CreatedAt)
+            .HasDefaultValueSql("now() at time zone 'utc'");
     }
 }

@@ -1,11 +1,16 @@
+using RiverLine.Api.Configurations;
+
 namespace RiverLine.Api.Services.Offers;
 
 public class OfferService(
     ApplicationDbContext dbContext,
-    IHubContext<NotificationHub> hubContext,
-    IEmailService emailService,
+    INotificationService notifications,
+    IOptions<AppUrls> urls,
+    ILogger<OfferService> logger,
     OfferMapper mapper) : IOfferService
 {
+    
+    private readonly AppUrls _urls = urls.Value;
     public async Task<Result<OfferDto>> CreateAsync(Guid carrierId, Guid shipmentRequestId, CreateOfferDto dto)
     {
         var request = await dbContext.ShipmentRequests
@@ -76,28 +81,20 @@ public class OfferService(
         var originName = request.OriginNileBerth.Name;
         var destName = request.DestinationNileBerth.Name;
 
-        await hubContext.Clients.User(request.CargoOwnerId.ToString())
-            .SendAsync("NewOffer", new
+        await notifications.CreateAsync(new NotificationRequest(
+            UserId:   request.CargoOwnerId,
+            Type:     NotificationType.OfferReceived,
+            EntityId: request.Id,
+            Data: new
             {
-                title = "New Offer Received",
-                message = $"{carrier.Name} offered {offer.Price} EGP for your shipment from {originName} to {destName}," +
-                          $" proposing pickup on {offer.ProposedPickupDate:dd MMM yyyy}."
-
-            }
-            );
-        try
-        {
-            await emailService.SendNewOfferNotificationAsync(
-                cargoOwner!.Email!,
-                cargoOwner.Name,
-                originName,
-                destName);
-        }
-        catch (Exception ex)
-        {
-            return Result.Failure(OperationError.Invalid,
-                $"Error , something went wrong: {ex.Message}");
-        }
+                cargoType   = request.CargoType,
+                origin      = request.OriginNileBerth.ArabicName,
+                destination = request.DestinationNileBerth.ArabicName,
+                price       = offer.Price,
+                pickupDate  = offer.ProposedPickupDate,
+                carrierName = vessel.CarrierProfile.CompanyName,
+                actionUrl   = _urls.Request(request.Id)
+            }));
 
         return Result<OfferDto>.Success(mapper.ToDto(offer));
     }
@@ -273,26 +270,64 @@ public class OfferService(
         await dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
 
-
-        var carrier = await dbContext.Users.FindAsync(offer.Carrier.Id);
-
-        await hubContext.Clients.User(offer.Carrier.Id.ToString())
-            .SendAsync("OfferAccepted", 
-                new
-                {
-                    title = "Offer Accepted",
-                    message = $"Your offer of {offer.Price:N0} EGP for the shipment from {offer.ShipmentRequest.OriginNileBerth.Name} to" +
-                              $" {offer.ShipmentRequest.DestinationNileBerth.Name} has been accepted by the cargo owner."
-                }
-                );
-
-        await emailService.SendOfferAcceptedNotificationAsync(
-            carrier!.Email!,
-            carrier.Name,
-            offer.ShipmentRequest.OriginNileBerth.Name,
-            offer.ShipmentRequest.DestinationNileBerth.Name,
-            offer.ProposedPickupDate);
-
+        
+       await NotifyAfterAcceptAsync(offer,request,shipment,vessel, rejected, withdrawn);
+       
         return Result<OfferDto>.Success(mapper.ToDto(offer));
     }
+    
+    
+        private async Task NotifyAfterAcceptAsync(
+        Offer accepted,
+        ShipmentRequest request,
+        Shipment shipment,
+        Vessel vessel,
+        IReadOnlyList<Offer> rejected,
+        IReadOnlyList<Offer> withdrawn)
+    {
+        var origin = request.OriginNileBerth.ArabicName;
+        var destination = request.DestinationNileBerth.ArabicName;
+ 
+        var batch = new List<NotificationRequest>(rejected.Count + withdrawn.Count + 1)
+        {
+            new(accepted.CarrierId,
+                NotificationType.OfferAccepted,
+                shipment.Id,
+                new
+                {
+                    price       = accepted.Price,
+                    origin,
+                    destination,
+                    pickupDate  = accepted.ProposedPickupDate,
+                    vesselName  = vessel.Name,
+                    actionUrl   = _urls.Shipment(shipment.Id)
+                })
+        };
+ 
+        batch.AddRange(rejected.Select(o => new NotificationRequest(
+            o.CarrierId,
+            NotificationType.OfferRejected,
+            request.Id,
+            new { cargoType = request.CargoType, origin, destination,
+                  actionUrl = _urls.MyOffers() })));
+ 
+        batch.AddRange(withdrawn.Select(o => new NotificationRequest(
+            o.ShipmentRequest.CargoOwnerId,
+            NotificationType.OfferWithdrawn,
+            o.ShipmentRequestId,
+            new { cargoType   = o.ShipmentRequest.CargoType,
+                  carrierName = vessel.CarrierProfile.CompanyName,
+                  actionUrl   = _urls.Request(o.ShipmentRequestId) })));
+ 
+        try
+        {
+            await notifications.CreateManyAsync(batch);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex,
+                "Notifications failed after accepting offer {OfferId}", accepted.Id);
+        }
+    }
+    
 }

@@ -8,7 +8,7 @@ builder.AddControllers()
     .AddApplicationServices()
     .AddAuthenticationServices()
     .AddCors()
-    .AddSignalRServices();
+    .AddNotificationServices();
 
 var app = builder.Build();
 

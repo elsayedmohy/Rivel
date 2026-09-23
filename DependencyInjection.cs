@@ -1,3 +1,5 @@
+using RiverLine.Api.Configurations;
+
 namespace RiverLine.Api;
 
 public static class DependencyInjection
@@ -75,18 +77,28 @@ public static class DependencyInjection
         builder.Services.AddScoped<IRatingService, RatingService>();
         builder.Services.AddScoped<ICarrierRouteService, CarrierRouteService>();
         builder.Services.AddScoped<INileBerthService, NileBerthService>();
-        builder.Services.AddScoped<IEmailService, EmailService>();
+        builder.Services.AddScoped<INotificationService, NotificationService>();
         builder.Services.AddScoped<ShipmentRequestMapper>();
         builder.Services.AddScoped<ShipmentMapper>();
         builder.Services.AddScoped<OfferMapper>();
         builder.Services.AddScoped<NileBerthMapper>();
         return builder;
     }
-    
-    public static WebApplicationBuilder AddSignalRServices(this WebApplicationBuilder builder)
+
+    public static WebApplicationBuilder AddNotificationServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddSignalR();
         builder.Services.AddSingleton<IUserIdProvider, NameIdentifierUserIdProvider>();
+        builder.Services.AddOptions();
+        builder.Services.AddHttpClient<ResendClient>();
+        builder.Services.Configure<ResendClientOptions>(o => { o.ApiToken = builder.Configuration["Resend:ApiKey"]!; });
+        builder.Services.AddTransient<IResend, ResendClient>();
+
+        builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Resend"));
+        builder.Services.Configure<AppUrls>(builder.Configuration.GetSection("App"));
+        builder.Services.AddScoped<IEmailService, EmailService>();
+        builder.Services.AddSingleton<MatchNotificationQueue>();
+        builder.Services.AddHostedService<MatchNotificationWorker>();
         return builder;
     }
 
@@ -149,6 +161,7 @@ public static class DependencyInjection
                         {
                             context.Token = accessToken;
                         }
+
                         return Task.CompletedTask;
                     }
                 };
@@ -176,4 +189,3 @@ public static class DependencyInjection
         return builder;
     }
 }
-
