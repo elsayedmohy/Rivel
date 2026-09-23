@@ -22,6 +22,11 @@ public class CreateVesselDtoValidator : AbstractValidator<CreateVesselDto>
 
         RuleFor(x => x.Capacity)
             .GreaterThan(0)
-            .WithMessage("Capacity must be greater than 0.");
+            .WithMessage("Capacity must be greater than 0.")
+            .LessThanOrEqualTo(20_000);
+        
+        RuleFor(x => x.YearBuilt)
+            .InclusiveBetween(1900, DateTime.UtcNow.Year)
+            .When(x => x.YearBuilt.HasValue);
     }
 }

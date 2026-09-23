@@ -6,7 +6,7 @@ public class ShipmentRequest
     public Guid CargoOwnerId { get; set; }
     public User CargoOwner { get; set; } = default!;
     public string CargoType { get; set; } = default!;
-    public double Weight { get; set; }
+    public decimal Weight { get; set; }
     public Guid OriginNileBerthId { get; set; }
     public NileBerth OriginNileBerth { get; set; } = default!;
     public Guid DestinationNileBerthId { get; set; }

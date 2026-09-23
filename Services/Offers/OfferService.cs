@@ -152,6 +152,13 @@ public class OfferService(
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
+        var lockedOffer = await dbContext.Offers
+            .FromSqlInterpolated($@"SELECT * FROM ""Offers"" WHERE ""Id"" = {offerId} FOR UPDATE")
+            .FirstOrDefaultAsync();
+ 
+        if (lockedOffer is null)
+            return Result<OfferDto>.Failure(OperationError.NotFound,"offer not found");
+        
         var offer = await dbContext.Offers
             .Include(o => o.Carrier)
             .ThenInclude(c => c.CarrierProfile)
@@ -210,6 +217,11 @@ public class OfferService(
                 OperationError.Invalid,
                 "The offer's vessel no longer exists.");
         }
+        
+        if (vessel.IsArchived)
+            return Result<OfferDto>.Failure(
+                OperationError.Conflict,
+                "vessel is archived");
 
         if (vessel.Status != VesselStatus.Available)
         {
@@ -217,18 +229,15 @@ public class OfferService(
             return Result.Failure(OperationError.Conflict,
                 "The offer's vessel is no longer available.");
         }
+        
+        if (vessel.Capacity < request.Weight)
+            return Result<OfferDto>.Failure(OperationError.Conflict
+                ,"vessel apacity insufficient");
 
         offer.Status = OfferStatus.Accepted;
         vessel.Status = VesselStatus.OnTrip;
         request.Status = ShipmentRequestStatus.Matched;
-
-        var siblings = await dbContext.Offers
-            .Where(o => o.ShipmentRequestId == offer.ShipmentRequestId && o.Id != offer.Id)
-            .ToListAsync();
-        foreach (var sibling in siblings.Where(s => s.Status == OfferStatus.Pending))
-            sibling.Status = OfferStatus.Rejected;
-
-
+        
         var shipment = new Shipment
         {
             Id = Guid.NewGuid(),
@@ -239,7 +248,28 @@ public class OfferService(
         };
 
         dbContext.Shipments.Add(shipment);
-        offer.Shipment = shipment;
+        
+        var rejected = await dbContext.Offers
+            .Where(o => o.ShipmentRequestId == offer.ShipmentRequestId && o.Id != offer.Id)
+            .ToListAsync();
+        
+        foreach (var sibling in rejected.Where(s => s.Status == OfferStatus.Pending))
+            sibling.Status = OfferStatus.Rejected;
+        
+        var rejectedIds = rejected.Select(o => o.Id).ToHashSet();
+ 
+        var withdrawn = await dbContext.Offers
+            .Include(o => o.ShipmentRequest)
+            .Where(o => o.VesselId == vessel.Id
+                        && o.Id != offer.Id
+                        && o.Status == OfferStatus.Pending)
+            .ToListAsync();
+ 
+        withdrawn = withdrawn.Where(o => !rejectedIds.Contains(o.Id)).ToList();
+ 
+        foreach (var other in withdrawn)
+            other.Status = OfferStatus.Withdrawn;
+        
         await dbContext.SaveChangesAsync();
         await transaction.CommitAsync();
 

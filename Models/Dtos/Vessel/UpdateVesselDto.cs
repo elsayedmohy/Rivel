@@ -1,10 +1,10 @@
 namespace RiverLine.Api.Models.Dtos.Vessel;
 
-public record CreateVesselDto(
+public record UpdateVesselDto(
     string Name,
-    VesselType Type,
     string RegistrationNumber,
+    VesselType Type,
     decimal Capacity,
     int? YearBuilt);
-    
-public record SetVesselStatusRequest(VesselStatus Status);
+ 
+public record SetVesselStatusDto(VesselStatus Status);

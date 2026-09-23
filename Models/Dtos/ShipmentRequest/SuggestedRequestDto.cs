@@ -3,7 +3,7 @@ namespace RiverLine.Api.Models.Dtos.ShipmentRequest;
 public record SuggestedRequestDto(
     Guid Id,
     string CargoType,
-    double Weight,
+    decimal Weight,
     DateOnly RequestedDate,
     int OffersCount,
     decimal? LowestOfferPrice,
@@ -11,7 +11,7 @@ public record SuggestedRequestDto(
     NileBerthDto.NileBerthDto OriginNileBerth,
     NileBerthDto.NileBerthDto DestinationNileBerth,
     int FittingVesselsCount,
-    double MaxVesselCapacity
+    decimal MaxVesselCapacity
     );
     
     

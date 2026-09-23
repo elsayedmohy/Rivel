@@ -3,7 +3,7 @@ namespace RiverLine.Api.Models.Dtos.ShipmentRequest;
 public record ShipmentRequestDto(
     Guid Id,
     string CargoType,
-    double Weight,
+    decimal Weight,
     NileBerth OriginNileBerth,
     NileBerth DestinationNileBerth,
     DateOnly RequestedDate,

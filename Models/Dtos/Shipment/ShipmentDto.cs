@@ -5,7 +5,7 @@ public record ShipmentDto(
     string ShipmentStatus,
     Guid ShipmentRequestId,
     string CargoType,
-    double Weight,
+    decimal Weight,
     NileBerthDto.NileBerthDto OriginNileBerth,
     NileBerthDto.NileBerthDto DestinationNileBerth,
     DateOnly RequestedDate,

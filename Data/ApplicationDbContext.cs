@@ -11,14 +11,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<Rating> Ratings => Set<Rating>();
     public DbSet<NileBerth> NileBerths => Set<NileBerth>();
-    
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         NileBerthSeed.Seed(modelBuilder);
-        
+
         modelBuilder.Entity<Offer>()
             .HasOne(o => o.Shipment)
             .WithOne(s => s.Offer)
@@ -34,10 +34,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithOne(s => s.ShipmentRequest)
             .HasForeignKey<Shipment>(s => s.ShipmentRequestId)
             .OnDelete(DeleteBehavior.Restrict);
-        
-        
+
         modelBuilder.Entity<Rating>()
-       .Property(r => r.CreatedAt)
-       .HasDefaultValueSql("now() at time zone 'utc'");
+            .Property(r => r.CreatedAt)
+            .HasDefaultValueSql("now() at time zone 'utc'");
+
+        modelBuilder.Entity<Vessel>()
+            .HasIndex(v => v.RegistrationNumber)
+            .IsUnique();
+
+        modelBuilder.Entity<Vessel>()
+            .HasIndex(v => new { v.CarrierProfileId, v.IsArchived });
     }
 }
