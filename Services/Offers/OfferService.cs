@@ -7,7 +7,9 @@ public class OfferService(
     INotificationService notifications,
     IOptions<AppUrls> urls,
     ILogger<OfferService> logger,
-    OfferMapper mapper) : IOfferService
+    OfferMapper mapper,
+    ShipmentMapper shipmentMapper
+    ) : IOfferService
 {
     
     private readonly AppUrls _urls = urls.Value;
@@ -145,7 +147,7 @@ public class OfferService(
             .ToListAsync();
     }
 
-    public async Task<Result<OfferDto>> AcceptAsync(Guid cargoOwnerId, Guid offerId)
+    public async Task<Result<ShipmentDto>> AcceptAsync(Guid cargoOwnerId, Guid offerId)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
@@ -154,7 +156,7 @@ public class OfferService(
             .FirstOrDefaultAsync();
  
         if (lockedOffer is null)
-            return Result<OfferDto>.Failure(OperationError.NotFound,"offer not found");
+            return Result<ShipmentDto>.Failure(OperationError.NotFound,"offer not found");
         
         var offer = await dbContext.Offers
             .Include(o => o.Carrier)
@@ -216,7 +218,7 @@ public class OfferService(
         }
         
         if (vessel.IsArchived)
-            return Result<OfferDto>.Failure(
+            return Result<ShipmentDto>.Failure(
                 OperationError.Conflict,
                 "vessel is archived");
 
@@ -228,7 +230,7 @@ public class OfferService(
         }
         
         if (vessel.Capacity < request.Weight)
-            return Result<OfferDto>.Failure(OperationError.Conflict
+            return Result<ShipmentDto>.Failure(OperationError.Conflict
                 ,"vessel apacity insufficient");
 
         offer.Status = OfferStatus.Accepted;
@@ -273,7 +275,7 @@ public class OfferService(
         
        await NotifyAfterAcceptAsync(offer,request,shipment,vessel, rejected, withdrawn);
        
-        return Result<OfferDto>.Success(mapper.ToDto(offer));
+        return Result<ShipmentDto>.Success(shipmentMapper.ToDto(shipment));
     }
     
     

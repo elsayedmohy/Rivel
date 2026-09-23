@@ -38,4 +38,12 @@
       <None Remove="Properties\PublishProfiles\rivel.runasp.net-WebDeploy.publishSettings.pubxml" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="publish\web.config" />
+      <_ContentIncludedByDefault Remove="publish\appsettings.json" />
+      <_ContentIncludedByDefault Remove="publish\RiverLine.Api.deps.json" />
+      <_ContentIncludedByDefault Remove="publish\RiverLine.Api.runtimeconfig.json" />
+      <_ContentIncludedByDefault Remove="publish\RiverLine.Api.staticwebassets.endpoints.json" />
+    </ItemGroup>
+
 </Project>

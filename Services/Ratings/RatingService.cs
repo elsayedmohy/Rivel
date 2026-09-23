@@ -1,9 +1,21 @@
+using RiverLine.Api.Configurations;
+
 namespace RiverLine.Api.Services.Ratings;
 
-public class RatingService(ApplicationDbContext dbContext) : IRatingService
+public class RatingService(
+    ApplicationDbContext dbContext,
+    INotificationService notifications,
+    IOptions<AppUrls> urls) : IRatingService
 {
+    private readonly AppUrls _urls = urls.Value;
+
     public async Task<Result<RatingDto>> CreateAsync(Guid cargoOwnerId, CreateRatingDto dto)
     {
+        var currnetUser = await dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == cargoOwnerId);
+        if (currnetUser is null)
+            return Result.Failure(OperationError.NotFound, "User not found.");
+
         var shipment = await dbContext.Shipments
             .Include(s => s.ShipmentRequest)
             .Include(s => s.Offer)
@@ -45,7 +57,16 @@ public class RatingService(ApplicationDbContext dbContext) : IRatingService
 
         dbContext.Ratings.Add(rating);
         await dbContext.SaveChangesAsync();
-
+        await notifications.CreateAsync(new NotificationRequest(
+            profile.UserId,
+            NotificationType.RatingReceived,
+            rating.Id,
+            new
+            {
+                score = dto.Score,
+                cargoOWnerName = currnetUser.Name,
+                actionUrl = _urls.Rating()
+            }));
         return Result<RatingDto>.Success(new RatingDto(rating.Id, rating.ShipmentId, rating.Score, rating.Comment));
     }
 

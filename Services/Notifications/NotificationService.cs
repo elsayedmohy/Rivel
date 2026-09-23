@@ -120,7 +120,7 @@ public class NotificationService(
             .OrderByDescending(n => n.CreatedAt)
             .ThenBy(n => n.Id)
             .Skip((page - 1) * pageSize)
-            .Take(pageSize + 1)          // واحد زيادة عشان نعرف في كمان ولا لأ
+            .Take(pageSize + 1) 
             .ToListAsync(ct);
  
         var hasMore = items.Count > pageSize;
@@ -162,6 +162,6 @@ public class NotificationService(
     }
  
     private static NotificationDto ToDto(Notification n)
-        => new(n.Id, n.Type, n.EntityId,
+        => new(n.Id, n.Type.ToString(), n.EntityId,
                JsonDocument.Parse(n.DataJson).RootElement, n.IsRead, n.CreatedAt);
 }

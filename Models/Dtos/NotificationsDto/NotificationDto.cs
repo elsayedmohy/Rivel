@@ -8,7 +8,7 @@ public sealed record NotificationRequest(
  
 public sealed record NotificationDto(
     Guid Id,
-    NotificationType Type,
+    string Type,
     Guid EntityId,
     JsonElement Data,
     bool IsRead,
