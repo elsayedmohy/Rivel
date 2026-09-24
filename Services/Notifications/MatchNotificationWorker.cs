@@ -46,13 +46,7 @@ public class MatchNotificationWorker(
  
         var carrierIds = await db.CarrierRoutes
             .AsNoTracking()
-            .Where(r => r.IsActive
-                     && r.OriginNileBerthId == request.OriginNileBerthId
-                     && r.DestinationNileBerthId == request.DestinationNileBerthId)
-            .Where(r => r.CarrierProfile.Vessels.Any(v =>
-                     !v.IsArchived
-                     && v.Status == VesselStatus.Available
-                     && v.Capacity >= request.Weight))
+            .Matching(request.OriginNileBerthId, request.DestinationNileBerthId, request.Weight)
             .Select(r => r.CarrierProfile.UserId)
             .Distinct() 
             .ToListAsync(ct);

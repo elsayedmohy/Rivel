@@ -141,7 +141,8 @@ public class CarrierRouteService(ApplicationDbContext dbContext,
  
     var capacities = await dbContext.Vessels
         .AsNoTracking()
-        .Where(v => v.CarrierProfile.UserId == carrierId && v.Status == VesselStatus.Available)
+        .Where(v => v.CarrierProfile.UserId == carrierId)
+        .Bookable()
         .Select(v => v.Capacity)
         .ToListAsync();
  
