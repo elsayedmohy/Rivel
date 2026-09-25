@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace RiverLine.Api.Services.Auth;
 
 public class TokenService(IOptions<JwtSettings> settings) : ITokenService
@@ -20,9 +22,23 @@ public class TokenService(IOptions<JwtSettings> settings) : ITokenService
             issuer: _settings.Issuer,
             audience: _settings.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddDays(_settings.ExpiryDays),
+            expires: DateTime.UtcNow.AddMinutes(_settings.DurationInMinutes),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+    public RefreshToken GenerateRefreshToken()
+    {
+        byte[] randomBytes = RandomNumberGenerator.GetBytes(32);
+        var base64String=  Convert.ToBase64String(randomBytes);
+        return new RefreshToken
+        {
+            Token = base64String,
+            CreatedAt = DateTime.UtcNow,
+            ExpireTime = DateTime.UtcNow.AddDays(_settings.ExpiryDays)
+        };
+    }
+
+
+    
 }

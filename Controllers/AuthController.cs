@@ -34,6 +34,13 @@ public class AuthController(IAuthService authService) : ControllerBase
         return Ok(result);
     }
     
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh(string token)
+    {
+        var result = await authService.RefreshTokenAsync(token);
+        return this.ToActionResult(result);
+    }
+    
     [Authorize]
     [HttpGet("me")]
     public IActionResult Me()
@@ -50,4 +57,14 @@ public class AuthController(IAuthService authService) : ControllerBase
             })
         });
     }
+    // public void SetRefreshTokenInCookie(RefreshToken refreshToken)
+    // {
+    //     var cookieOptions = new CookieOptions
+    //     {
+    //         HttpOnly = true,
+    //         Expires = refreshToken.ExpireTime,
+    //     };
+    //     
+    //     Response.Cookies.Append("refreshToken", refreshToken.Token, cookieOptions);
+    // }
 }

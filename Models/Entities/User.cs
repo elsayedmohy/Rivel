@@ -10,4 +10,6 @@ public class User : IdentityUser<Guid>
     public CarrierProfile? CarrierProfile { get; set; }
     public ICollection<ShipmentRequest> ShipmentRequests { get; set; } = new List<ShipmentRequest>();
     public ICollection<Offer> Offers { get; set; } = new List<Offer>();
+   
+    public ICollection<RefreshToken>? RefreshTokens { get; set; } 
 }

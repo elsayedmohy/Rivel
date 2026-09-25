@@ -11,6 +11,9 @@ public static class ControllerResultExtensions
 
         return result.Error switch
         {
+            OperationError.Unauthorized =>
+                controller.NotFound(result.Message),
+            
             OperationError.NotFound =>
                 controller.NotFound(result.Message),
 
@@ -19,12 +22,7 @@ public static class ControllerResultExtensions
 
             OperationError.Conflict =>
                 controller.Conflict(result.Message),
-
-            OperationError.Validation or
-                OperationError.BadRequest or
-                OperationError.Invalid =>
-                controller.BadRequest(result.Message),
-
+            
             _ =>
                 controller.BadRequest(result.Message)
         };
