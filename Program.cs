@@ -30,5 +30,9 @@ app.UseRateLimiter();
 app.UseAuthorization();
 app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapControllers();
-
+app.MapGet("/debug/ip", (HttpContext ctx) => new
+{
+    remote = ctx.Connection.RemoteIpAddress?.ToString(),
+    forwardedFor = ctx.Request.Headers["X-Forwarded-For"].ToString()
+});
 app.Run();

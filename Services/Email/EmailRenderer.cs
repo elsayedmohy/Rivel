@@ -18,7 +18,7 @@ public static class EmailRenderer
         };
  
         foreach (var (key, element) in message.Data)
-            values[key] = Format(element);
+            values[key] = Format(key, element);
  
         var body = Fill(template.Body, values);
         var html = EmailTemplates.Layout.Replace("{{content}}", body);
@@ -30,22 +30,27 @@ public static class EmailRenderer
         => Placeholder.Replace(template, m =>
             values.TryGetValue(m.Groups[1].Value, out var v) ? HtmlEncoder.Default.Encode(v) : "");
  
-    private static string Format(JsonElement element) => element.ValueKind switch
+    private static string Format(string key, JsonElement element) => element.ValueKind switch
     {
         JsonValueKind.Number => element.TryGetInt64(out var l)
             ? l.ToString("N0", Culture)
             : element.GetDouble().ToString("N2", Culture),
- 
+
         JsonValueKind.True => "نعم",
         JsonValueKind.False => "لا",
         JsonValueKind.Null or JsonValueKind.Undefined => "",
- 
-        JsonValueKind.String => DateTime.TryParse(
-            element.GetString(), CultureInfo.InvariantCulture,
-            DateTimeStyles.RoundtripKind, out var date)
-            ? date.ToString("d MMMM yyyy", Culture)
-            : element.GetString() ?? "",
- 
+
+        JsonValueKind.String when IsDateKey(key)
+                                  && DateTime.TryParse(element.GetString(), CultureInfo.InvariantCulture,
+                                      DateTimeStyles.RoundtripKind, out var date)
+            => date.ToString("d MMMM yyyy", Culture),
+
+        JsonValueKind.String => element.GetString() ?? "",
+
         _ => element.ToString()
     };
+    
+    private static bool IsDateKey(string key) =>
+        key.EndsWith("Date", StringComparison.Ordinal) ||
+        key.EndsWith("At", StringComparison.Ordinal);
 }
