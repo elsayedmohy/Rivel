@@ -2,5 +2,7 @@ namespace RiverLine.Api.Models.Dtos.Auth;
 
 public record TokensResponseDto(
     string AccessToken,
-    RefreshToken RefreshToken
+    string RefreshToken
     );
+    
+public record RefreshTokenDto(string RefreshToken);

@@ -38,6 +38,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey<Shipment>(s => s.ShipmentRequestId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<CarrierProfile>()
+            .Property(p => p.Bio)
+            .HasMaxLength(1000);
+
         modelBuilder.Entity<Rating>()
             .Property(r => r.CreatedAt)
             .HasDefaultValueSql("now() at time zone 'utc'");

@@ -8,6 +8,7 @@ builder.AddControllers()
     .AddApplicationServices()
     .AddAuthenticationServices()
     .AddCors()
+    .AddRateLimiting()
     .AddNotificationServices();
 
 var app = builder.Build();
@@ -25,6 +26,7 @@ app.UseStatusCodePages();
 app.UseHttpsRedirection();
 app.UseCors("RiverLinePolicy");
 app.UseAuthentication();
+app.UseRateLimiter(); 
 app.UseAuthorization();
 app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapControllers();

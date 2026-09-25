@@ -7,13 +7,8 @@ public class AuthController(IAuthService authService) : ControllerBase
 {
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto dto, [FromServices] IValidator<RegisterDto> validator)
+    public async Task<IActionResult> Register(RegisterDto dto)
     {
-        var validationResult = await validator.ValidateAsync(dto);
-        if (!validationResult.IsValid)
-            return ValidationProblem(new ValidationProblemDetails(
-                validationResult.ToDictionary()));
-
         var result = await authService.RegisterAsync(dto);
         if (result is null) return BadRequest("Email already exists");
 
@@ -21,12 +16,8 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
     
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto dto, [FromServices] IValidator<LoginDto> validator)
+    public async Task<IActionResult> Login(LoginDto dto)
     {
-        var validationResult = await validator.ValidateAsync(dto);
-        if (!validationResult.IsValid)
-            return ValidationProblem(new ValidationProblemDetails(validationResult.ToDictionary()));
-
         var result = await authService.LoginAsync(dto);
         if (result is null)
             return Unauthorized("Invalid email or password");
@@ -35,9 +26,9 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
     
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh(string token)
+    public async Task<IActionResult> Refresh(RefreshTokenDto dto)
     {
-        var result = await authService.RefreshTokenAsync(token);
+        var result = await authService.RefreshTokenAsync(dto.RefreshToken);
         return this.ToActionResult(result);
     }
     

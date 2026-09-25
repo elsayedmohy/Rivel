@@ -88,7 +88,7 @@ public class AuthService(
         return Result<TokensResponseDto>.Success(
             new TokensResponseDto(
                 AccessToken: accessToken,
-                RefreshToken: newRefreshToken
+                RefreshToken: newRefreshToken.Token
             )
         );
     }

@@ -1,3 +1,5 @@
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using RiverLine.Api.Configurations;
 
 namespace RiverLine.Api;
@@ -7,7 +9,10 @@ public static class DependencyInjection
     public static WebApplicationBuilder AddControllers(this WebApplicationBuilder builder)
     {
         builder.Services.AddControllers(options =>
-                options.ReturnHttpNotAcceptable = true)
+                {
+                    options.ReturnHttpNotAcceptable = true;
+                    options.Filters.Add<FluentValidationFilter>();
+                })
             .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); })
             .AddXmlSerializerFormatters();
         builder.Services.AddProblemDetails();
@@ -78,6 +83,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<ICarrierRouteService, CarrierRouteService>();
         builder.Services.AddScoped<INileBerthService, NileBerthService>();
         builder.Services.AddScoped<INotificationService, NotificationService>();
+        builder.Services.AddScoped<IProfileService, ProfileService>();
         builder.Services.AddScoped<ShipmentRequestMapper>();
         builder.Services.AddScoped<ShipmentMapper>();
         builder.Services.AddScoped<OfferMapper>();
@@ -96,6 +102,12 @@ public static class DependencyInjection
 
         builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Resend"));
         builder.Services.Configure<AppUrls>(builder.Configuration.GetSection("App"));
+        builder.Services.AddOptions<AppUrls>()
+            .Bind(builder.Configuration.GetSection("App"))
+            .Validate(o => Uri.TryCreate(o.BaseUrl, UriKind.Absolute, out var uri)
+                           && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps),
+                "App:BaseUrl must not be empty and valid")
+            .ValidateOnStart();
         builder.Services.AddScoped<IEmailService, EmailService>();
         builder.Services.AddSingleton<MatchNotificationQueue>();
         builder.Services.AddHostedService<MatchNotificationWorker>();
@@ -145,24 +157,6 @@ public static class DependencyInjection
                 };
                 options.Events = new JwtBearerEvents
                 {
-                    OnAuthenticationFailed = context =>
-                    {
-                        Console.WriteLine($"JWT FAILED: {context.Exception.Message}");
-                        return Task.CompletedTask;
-                    },
-                    OnChallenge = context =>
-                    {
-                        Console.WriteLine($"JWT CHALLENGE: {context.Error} - {context.ErrorDescription}");
-                        return Task.CompletedTask;
-                    },
-                    OnTokenValidated = context =>
-                    {
-                        Console.WriteLine("JWT VALIDATED SUCCESSFULLY");
-                        return Task.CompletedTask;
-                    }
-                };
-                options.Events = new JwtBearerEvents
-                {
                     OnMessageReceived = context =>
                     {
                         var accessToken = context.Request.Query["access_token"];
@@ -178,16 +172,34 @@ public static class DependencyInjection
                 };
             });
         
-        // builder.Services.ConfigureApplicationCookie(options =>
-        // {
-        //     // Cookie settings
-        //     options.Cookie.HttpOnly = true;
-        //     options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-        //
-        //     options.LoginPath = "/Identity/Account/Login";
-        //     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
-        //     options.SlidingExpiration = true;
-        // });
+        return builder;
+    }
+
+    public static WebApplicationBuilder AddRateLimiting(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            options.OnRejected = async (context, cancellationToken) =>
+            {
+                context.HttpContext.Response.ContentType = "text/plain";
+                await context.HttpContext.Response.WriteAsync("rate_limited", cancellationToken);
+            };
+
+            options.AddPolicy(RateLimitPolicies.Sensitive, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
+                                  ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                                  ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromMinutes(15),
+                        QueueLimit = 0
+                    }));
+        });
+
         return builder;
     }
 
