@@ -88,7 +88,7 @@ public class ProfileService(
 
         var now = DateTime.UtcNow;
         var revoked = 0;
-        foreach (var token in user.RefreshTokens ?? [])
+        foreach (var token in user.RefreshTokens)
         {
             if (!token.IsActive)
                 continue;

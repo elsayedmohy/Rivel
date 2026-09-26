@@ -11,5 +11,6 @@ public class User : IdentityUser<Guid>
     public ICollection<ShipmentRequest> ShipmentRequests { get; set; } = new List<ShipmentRequest>();
     public ICollection<Offer> Offers { get; set; } = new List<Offer>();
    
-    public ICollection<RefreshToken>? RefreshTokens { get; set; } 
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
+    
 }

@@ -39,11 +39,11 @@ public class AuthService(
         }
 
         var accessToken = tokenService.GenerateToken(user);
-        var refreshToken = tokenService.GenerateRefreshToken();
+        var refreshToken = IssueRefreshTokenAsync(user);
         await SendConfirmationEmailAsync(user);
         return new AuthResult(
             new AuthResponseDto(accessToken,
-                refreshToken.Token,
+                refreshToken.Result.Token,
                 user.Id,
                 user.Role.ToString()
             ),
@@ -62,10 +62,10 @@ public class AuthService(
             return null;
 
         var accessToken = tokenService.GenerateToken(user);
-        var refreshToken = await HandleRefreshToken(user);
+        var refreshToken = IssueRefreshTokenAsync(user);
 
         return new AuthResult(
-            new AuthResponseDto(accessToken, refreshToken.Token, user.Id, user.Role.ToString()),
+            new AuthResponseDto(accessToken, refreshToken.Result.Token, user.Id, user.Role.ToString()),
             []);
     }
 
@@ -96,24 +96,7 @@ public class AuthService(
         );
     }
 
-
-    private async Task<RefreshToken> HandleRefreshToken(User user)
-    {
-        RefreshToken refreshToken;
-        if (user.RefreshTokens.Any(t => t.IsActive))
-        {
-            RefreshToken activeRefreshToken = user.RefreshTokens.FirstOrDefault(t => t.IsActive);
-            refreshToken = activeRefreshToken;
-        }
-        else
-        {
-            refreshToken = tokenService.GenerateRefreshToken();
-            user.RefreshTokens.Add(refreshToken);
-            await userManager.UpdateAsync(user);
-        }
-
-        return refreshToken!;
-    }
+    
 
     public async Task<Result<bool>> ConfirmEmailAsync(ConfirmEmailDto dto)
     {
@@ -216,5 +199,26 @@ public class AuthService(
 
         cache.Set(key, true, TimeSpan.FromMinutes(5));
         return true;
+    }
+    
+    private async Task<RefreshToken> IssueRefreshTokenAsync(User user)
+    {
+        var token = tokenService.GenerateRefreshToken();
+        PruneRefreshTokens(user);
+        user.RefreshTokens.Add(token);
+        await userManager.UpdateAsync(user);
+        return token;
+    }
+    
+    
+    private static void PruneRefreshTokens(User user)
+    {
+        var cutoff = DateTime.UtcNow.AddDays(-7);
+        var stale = user.RefreshTokens!
+            .Where(t => !t.IsActive && (t.RevokedAt ?? t.ExpireTime) < cutoff)
+            .ToList();
+
+        foreach (var token in stale)
+            user.RefreshTokens!.Remove(token);
     }
 }
