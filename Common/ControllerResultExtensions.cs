@@ -12,13 +12,13 @@ public static class ControllerResultExtensions
         return result.Error switch
         {
             OperationError.Unauthorized =>
-                controller.NotFound(result.Message),
+                controller.Unauthorized(result.Message),
             
             OperationError.NotFound =>
                 controller.NotFound(result.Message),
 
             OperationError.Forbidden =>
-                controller.Forbid(),
+                controller.StatusCode(StatusCodes.Status403Forbidden, result.Message),
 
             OperationError.Conflict =>
                 controller.Conflict(result.Message),

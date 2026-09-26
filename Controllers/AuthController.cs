@@ -1,4 +1,6 @@
 
+using Microsoft.AspNetCore.RateLimiting;
+
 namespace RiverLine.Api.Controllers;
 
 [ApiController]
@@ -7,6 +9,7 @@ public class AuthController(IAuthService authService) : ControllerBase
 {
 
     [HttpPost("register")]
+    [EnableRateLimiting(RateLimitPolicies.Sensitive)]  
     public async Task<IActionResult> Register(RegisterDto dto)
     {
         var result = await authService.RegisterAsync(dto);
@@ -48,6 +51,39 @@ public class AuthController(IAuthService authService) : ControllerBase
             })
         });
     }
+    
+    [HttpPost("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)
+    {
+        var result = await authService.ConfirmEmailAsync(dto);
+        return result.Succeeded ? NoContent() : this.ToActionResult(result);
+    }
+
+    [Authorize]
+    [HttpPost("resend-confirmation")]
+    [EnableRateLimiting(RateLimitPolicies.Sensitive)]
+    public async Task<IActionResult> ResendConfirmation()
+    {
+        var result = await authService.ResendConfirmationAsync(User.GetUserId());
+        return result.Succeeded ? NoContent() : this.ToActionResult(result);
+    }
+
+    [HttpPost("forgot-password")]
+    [EnableRateLimiting(RateLimitPolicies.Sensitive)]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+    {
+        await authService.ForgotPasswordAsync(dto.Email);
+        return NoContent();
+    }
+
+    [HttpPost("reset-password")]
+    [EnableRateLimiting(RateLimitPolicies.Sensitive)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+    {
+        var result = await authService.ResetPasswordAsync(dto);
+        return result.Succeeded ? NoContent() : this.ToActionResult(result);
+    }
+    
     // public void SetRefreshTokenInCookie(RefreshToken refreshToken)
     // {
     //     var cookieOptions = new CookieOptions

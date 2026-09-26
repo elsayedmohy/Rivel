@@ -1,8 +1,10 @@
+
 namespace RiverLine.Api.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-    : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options)
+    : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options), IDataProtectionKeyContext
 {
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
     public DbSet<CarrierProfile> CarrierProfiles => Set<CarrierProfile>();
     public DbSet<CarrierRoute> CarrierRoutes => Set<CarrierRoute>();
     public DbSet<Vessel> Vessels => Set<Vessel>();
@@ -65,4 +67,5 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .Property(n => n.CreatedAt)
             .HasDefaultValueSql("now() at time zone 'utc'");
     }
+
 }

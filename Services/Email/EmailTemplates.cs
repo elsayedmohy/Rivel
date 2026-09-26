@@ -43,13 +43,30 @@ public static class EmailTemplates
                 <p>السبب: {{reason}}</p>
                 <p><a class="btn" href="{{actionUrl}}">شوف التفاصيل</a></p>
                 """),
+        
+        ["confirm-email"] = new(
+          Subject: "أكّد إيميلك على RiverLine",
+          Body: """
+                <p>أهلاً {{recipientName}},</p>
+                <p>عشان تقدر تنشئ طلبات وتقدّم عروض، محتاجين نتأكد إن الإيميل ده بتاعك.</p>
+                <p><a href="{{actionUrl}}" style="display:inline-block;padding:12px 22px;background:#202020;color:#f6f4e2;border-radius:10px;text-decoration:none;font-weight:600;">تأكيد الإيميل</a></p>
+                <p style="color:#6b6b60;font-size:13px;">لو الزرار مش شغال، انسخ اللينك ده:<br>{{actionUrl}}</p>
+                <p style="color:#6b6b60;font-size:13px;">اللينك صالح ٣ أيام. لو مش انت اللي سجّلت، تجاهل الرسالة.</p>
+                """),
+
+        ["reset-password"] = new(
+          Subject: "إعادة تعيين كلمة السر",
+          Body: """
+                <p>أهلاً {{recipientName}},</p>
+                <p>وصلنا طلب إعادة تعيين كلمة السر لحسابك.</p>
+                <p><a href="{{actionUrl}}" style="display:inline-block;padding:12px 22px;background:#202020;color:#f6f4e2;border-radius:10px;text-decoration:none;font-weight:600;">اختار كلمة سر جديدة</a></p>
+                <p style="color:#6b6b60;font-size:13px;">لو الزرار مش شغال، انسخ اللينك ده:<br>{{actionUrl}}</p>
+                <p style="color:#6b6b60;font-size:13px;">اللينك صالح ساعتين ويشتغل مرة واحدة بس. لو مش انت اللي طلبت، تجاهل الرسالة وكلمة السر مش هتتغيّر.</p>
+                """),
     };
  
     public static EmailTemplate? Get(string key) => Templates.GetValueOrDefault(key);
  
-    // ⚠️ dir="rtl" و lang="ar" لازم يكونوا على <html> نفسه.
-    // عملاء الإيميل (خصوصاً Outlook) بيتجاهلوا الـ CSS كتير،
-    // فالـ attributes دي هي اللي بتظبط الاتجاه فعلاً.
     public const string Layout = """
         <!DOCTYPE html>
         <html dir="rtl" lang="ar">

@@ -17,6 +17,12 @@ global using Resend;
 global using System.Globalization;
 global using System.Text.Encodings.Web;
 global using System.Text.RegularExpressions;
+global using Microsoft.AspNetCore.WebUtilities;
+global using System.Threading.RateLimiting;
+global using Microsoft.AspNetCore.DataProtection;
+global using RiverLine.Api.Configurations;
+global using Microsoft.Extensions.Caching.Memory;
+global using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 // ************************************************
 
 global using System.Text;

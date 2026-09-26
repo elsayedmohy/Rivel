@@ -1,7 +1,3 @@
-using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.RateLimiting;
-using RiverLine.Api.Configurations;
-
 namespace RiverLine.Api;
 
 public static class DependencyInjection
@@ -132,10 +128,18 @@ public static class DependencyInjection
                 options.User.AllowedUserNameCharacters =
                     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
                 options.User.RequireUniqueEmail = true;
+                options.Tokens.EmailConfirmationTokenProvider = "emailconfirmation";
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddTokenProvider<EmailConfirmationTokenProvider<User>>("emailconfirmation");
+        builder.Services.Configure<DataProtectionTokenProviderOptions>(o =>
+            o.TokenLifespan = TimeSpan.FromHours(2));
 
+        builder.Services.Configure<EmailConfirmationTokenProviderOptions>(o =>
+            o.TokenLifespan = TimeSpan.FromDays(3));
+
+        builder.Services.AddMemoryCache();
         builder.Services.AddAuthentication(options =>
             {
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -171,6 +175,10 @@ public static class DependencyInjection
                     }
                 };
             });
+        
+        builder.Services.AddDataProtection()
+            .PersistKeysToDbContext<ApplicationDbContext>()
+            .SetApplicationName("RiverLine");
         
         return builder;
     }

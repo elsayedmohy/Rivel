@@ -15,6 +15,9 @@ public class OfferService(
     private readonly AppUrls _urls = urls.Value;
     public async Task<Result<OfferDto>> CreateAsync(Guid carrierId, Guid shipmentRequestId, CreateOfferDto dto)
     {
+        if (!await dbContext.IsEmailConfirmedAsync(carrierId))  
+            return Result.Failure(OperationError.Forbidden, "email.unconfirmed");
+        
         var request = await dbContext.ShipmentRequests
             .Include(r => r.OriginNileBerth)
             .Include(r => r.DestinationNileBerth)

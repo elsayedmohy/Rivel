@@ -6,7 +6,7 @@ public static class EmailRenderer
     private static readonly Regex Placeholder =
         new(@"\{\{(\w+)\}\}", RegexOptions.Compiled);
  
-    public static (string Subject, string Html)? Render(EmailMessageDto message)
+    public static (string Subject, string Html,string text)? Render(EmailMessageDto message)
     {
         var template = EmailTemplates.Get(message.TemplateKey);
         if (template is null)
@@ -23,7 +23,8 @@ public static class EmailRenderer
         var body = Fill(template.Body, values);
         var html = EmailTemplates.Layout.Replace("{{content}}", body);
  
-        return (Fill(template.Subject, values), html);
+        var text = ToPlainText(body);   
+        return (Fill(template.Subject, values), html, text);
     }
  
     private static string Fill(string template, IReadOnlyDictionary<string, string> values)
@@ -53,4 +54,12 @@ public static class EmailRenderer
     private static bool IsDateKey(string key) =>
         key.EndsWith("Date", StringComparison.Ordinal) ||
         key.EndsWith("At", StringComparison.Ordinal);
+    
+    private static string ToPlainText(string html)
+    {
+        var text = Regex.Replace(html, @"<br\s*/?>|</p>", "\n", RegexOptions.IgnoreCase);
+        text = Regex.Replace(text, "<[^>]+>", "");
+        return System.Net.WebUtility.HtmlDecode(text).Trim();
+    }
+    
 }

@@ -18,13 +18,14 @@ public class EmailService(
             return;
         }
  
-        var (subject, html) = rendered.Value;
+        var (subject, html, text) = rendered.Value;
  
         var email = new Resend.EmailMessage
         {
             From = $"{_settings.FromName} <{_settings.FromEmail}>",
             Subject = subject,
-            HtmlBody = html
+            HtmlBody = html,
+            TextBody = text
         };
  
         email.To.Add(message.To);

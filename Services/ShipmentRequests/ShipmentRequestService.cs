@@ -7,6 +7,10 @@ public class ShipmentRequestService(
 {
     public async Task<Result<ShipmentRequestDto>> CreateAsync(Guid cargoOwnerId, CreateShipmentRequestDto dto)
     {
+        
+        if (!await dbContext.IsEmailConfirmedAsync(cargoOwnerId))  
+            return Result.Failure(OperationError.Forbidden, "email.unconfirmed");
+        
         var berths = await dbContext.NileBerths
             .Where(x => x.Id == dto.OriginNileBerthId || x.Id == dto.DestinationNileBerthId)
             .ToListAsync();
