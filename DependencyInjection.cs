@@ -5,10 +5,10 @@ public static class DependencyInjection
     public static WebApplicationBuilder AddControllers(this WebApplicationBuilder builder)
     {
         builder.Services.AddControllers(options =>
-                {
-                    options.ReturnHttpNotAcceptable = true;
-                    options.Filters.Add<FluentValidationFilter>();
-                })
+            {
+                options.ReturnHttpNotAcceptable = true;
+                options.Filters.Add<FluentValidationFilter>();
+            })
             .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); })
             .AddXmlSerializerFormatters();
         builder.Services.AddProblemDetails();
@@ -80,6 +80,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<INileBerthService, NileBerthService>();
         builder.Services.AddScoped<INotificationService, NotificationService>();
         builder.Services.AddScoped<IProfileService, ProfileService>();
+        builder.Services.AddScoped<ICarrierService, CarrierService>();
         builder.Services.AddScoped<ShipmentRequestMapper>();
         builder.Services.AddScoped<ShipmentMapper>();
         builder.Services.AddScoped<OfferMapper>();
@@ -120,7 +121,7 @@ public static class DependencyInjection
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequireUppercase = true;
                 options.Password.RequiredUniqueChars = 1;
-                
+
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.AllowedForNewUsers = true;
@@ -175,11 +176,11 @@ public static class DependencyInjection
                     }
                 };
             });
-        
+
         builder.Services.AddDataProtection()
             .PersistKeysToDbContext<ApplicationDbContext>()
             .SetApplicationName("RiverLine");
-        
+
         return builder;
     }
 
@@ -194,6 +195,16 @@ public static class DependencyInjection
                 context.HttpContext.Response.ContentType = "text/plain";
                 await context.HttpContext.Response.WriteAsync("rate_limited", cancellationToken);
             };
+
+            options.AddPolicy(RateLimitPolicies.Public, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 60,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    }));
 
             options.AddPolicy(RateLimitPolicies.Sensitive, httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(

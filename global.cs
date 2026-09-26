@@ -23,6 +23,7 @@ global using Microsoft.AspNetCore.DataProtection;
 global using RiverLine.Api.Configurations;
 global using Microsoft.Extensions.Caching.Memory;
 global using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+global using Microsoft.AspNetCore.RateLimiting;
 // ************************************************
 
 global using System.Text;
@@ -47,6 +48,7 @@ global using RiverLine.Api.Models.Dtos.Vessel;
 global using RiverLine.Api.Models.Dtos.CarrierRoute;
 global using RiverLine.Api.Models.Dtos.NileBerthDto;
 global using RiverLine.Api.Models.Dtos.NotificationsDto;
+global using RiverLine.Api.Models.Dtos.Carrier;
 global using RiverLine.Api.Data;
 global using RiverLine.Api.Services.Notifications;
 global using RiverLine.Api.Services.Auth;
@@ -63,4 +65,5 @@ global using RiverLine.Api.Extensions;
 global using RiverLine.Api.Services.NileBerths;
 global using RiverLine.Api.Services.Vessels;
 global using RiverLine.Api.Services.Profiles;
+global using RiverLine.Api.Services.Carriers;
 global using RiverLine.Api.Models.Dtos.Profile;
