@@ -69,6 +69,22 @@ public class AuthService(
             []);
     }
 
+    public async Task LogoutAsync(string token)
+    {
+        var user = await userManager.Users.SingleOrDefaultAsync(user =>
+            user.RefreshTokens.Any(t =>
+                t.Token == token)
+            );
+        var refreshToken = user?.RefreshTokens.Single(t =>
+            t.Token == token);
+        if (refreshToken is not { IsActive: true })
+            return;
+        
+        refreshToken.RevokedAt = DateTime.UtcNow;
+        await userManager.UpdateAsync(user!);
+        
+    }
+
     public async
         Task<Result<TokensResponseDto>> RefreshTokenAsync(string token)
     {
@@ -96,7 +112,6 @@ public class AuthService(
         );
     }
 
-    
 
     public async Task<Result<bool>> ConfirmEmailAsync(ConfirmEmailDto dto)
     {
@@ -200,7 +215,7 @@ public class AuthService(
         cache.Set(key, true, TimeSpan.FromMinutes(5));
         return true;
     }
-    
+
     private async Task<RefreshToken> IssueRefreshTokenAsync(User user)
     {
         var token = tokenService.GenerateRefreshToken();
@@ -209,8 +224,8 @@ public class AuthService(
         await userManager.UpdateAsync(user);
         return token;
     }
-    
-    
+
+
     private static void PruneRefreshTokens(User user)
     {
         var cutoff = DateTime.UtcNow.AddDays(-7);

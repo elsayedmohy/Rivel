@@ -82,14 +82,12 @@ public class AuthController(IAuthService authService) : ControllerBase
         return result.Succeeded ? NoContent() : this.ToActionResult(result);
     }
     
-    // public void SetRefreshTokenInCookie(RefreshToken refreshToken)
-    // {
-    //     var cookieOptions = new CookieOptions
-    //     {
-    //         HttpOnly = true,
-    //         Expires = refreshToken.ExpireTime,
-    //     };
-    //     
-    //     Response.Cookies.Append("refreshToken", refreshToken.Token, cookieOptions);
-    // }
+    [HttpPost("logout")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Logout(RefreshTokenDto dto)
+    {
+        await authService.LogoutAsync(dto.RefreshToken);
+        return NoContent();
+    }
+    
 }

@@ -37,6 +37,7 @@
 
     <ItemGroup>
       <None Remove="Properties\PublishProfiles\rivel.runasp.net-WebDeploy.publishSettings.pubxml" />
+      <None Remove="Properties\PublishProfiles\rivel.runasp.net-WebDeploy.publishSettings" />
     </ItemGroup>
 
     <ItemGroup>
