@@ -10,4 +10,5 @@ public record CarrierPublicProfileDto(
     int RatingCount,
     int CompletedShipments,
     int VesselCount,
-    IReadOnlyList<CarrierRouteSummaryDto> ActiveRoutes);
+    IReadOnlyList<CarrierRouteSummaryDto> ActiveRoutes,
+    string? LogoPath);

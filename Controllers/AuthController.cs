@@ -33,22 +33,6 @@ public class AuthController(IAuthService authService) : ControllerBase
         return this.ToActionResult(result);
     }
     
-    [Authorize]
-    [HttpGet("me")]
-    public IActionResult Me()
-    {
-        return Ok(new
-        {
-            IsAuthenticated = User.Identity?.IsAuthenticated,
-            UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
-            Name = User.Identity?.Name,
-            Claims = User.Claims.Select(x => new
-            {
-                x.Type,
-                x.Value
-            })
-        });
-    }
     
     [HttpPost("confirm-email")]
     public async Task<IActionResult> ConfirmEmail(ConfirmEmailDto dto)

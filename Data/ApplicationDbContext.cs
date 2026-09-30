@@ -44,6 +44,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .Property(p => p.Bio)
             .HasMaxLength(1000);
 
+        modelBuilder.Entity<CarrierProfile>()
+            .Property(p => p.LogoPath)
+            .HasMaxLength(300);
+        
         modelBuilder.Entity<Rating>()
             .Property(r => r.CreatedAt)
             .HasDefaultValueSql("now() at time zone 'utc'");

@@ -3,7 +3,8 @@ namespace RiverLine.Api.Services.Profiles;
 public class ProfileService(
     UserManager<User> userManager,
     ApplicationDbContext dbContext,
-    ILogger<ProfileService> logger) : IProfileService
+    ILogger<ProfileService> logger,
+    IFileStorage storage) : IProfileService
 {
     public async Task<Result<ProfileDto>> GetMineAsync(Guid userId)
     {
@@ -18,13 +19,14 @@ public class ProfileService(
                 u.Role,
                 u.EmailConfirmed,
                 u.CarrierProfile != null ? u.CarrierProfile.CompanyName : null,
-                u.CarrierProfile != null ? u.CarrierProfile.Bio : null))
+                u.CarrierProfile != null ? u.CarrierProfile.Bio : null,
+                u.CarrierProfile != null ? u.CarrierProfile.LogoPath : null))
             .FirstOrDefaultAsync();
 
         if (profile is null)
             return Result.Failure(OperationError.NotFound, "user.not_found");
 
-        return Result<ProfileDto>.Success(profile);
+        return Result<ProfileDto>.Success(profile with { LogoPath = storage.GetPublicUrl(profile.LogoPath) });
     }
 
     public async Task<Result<ProfileDto>> UpdateMineAsync(Guid userId, UpdateProfileDto dto)
@@ -48,13 +50,14 @@ public class ProfileService(
             user.CarrierProfile.CompanyName = company;
             user.CarrierProfile.Bio = string.IsNullOrWhiteSpace(dto.Bio) ? null : dto.Bio.Trim();
         }
+
         user.Name = dto.Name.Trim();
 
         var phone = PhoneNumbers.Normalize(dto.PhoneNumber);
         if (phone != user.PhoneNumber)
         {
             user.PhoneNumber = phone;
-            user.PhoneNumberConfirmed = false;   
+            user.PhoneNumberConfirmed = false;
         }
 
         var result = await userManager.UpdateAsync(user);
@@ -106,7 +109,72 @@ public class ProfileService(
         return Result<bool>.Success(true);
     }
 
-    private static ProfileDto ToDto(User user) => new(
+
+    public async Task<Result<ProfileDto>> UploadLogoAsync(Guid userId, IFormFile file, CancellationToken ct)
+    {
+        if (file.Length == 0)
+            return Result.Failure(OperationError.Validation, "logo.empty");
+        if (file.Length > ImageSignatures.MaxLogoBytes)
+            return Result.Failure(OperationError.Validation, "logo.too_large");
+
+        var user = await dbContext.Users
+            .Include(u => u.CarrierProfile)
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+        if (user?.CarrierProfile is null)
+            return Result.Failure(OperationError.NotFound, "carrier.profile_not_found");
+
+        await using var stream = file.OpenReadStream();
+        var header = new byte[ImageSignatures.HeaderLength];
+        var read = await stream.ReadAtLeastAsync(header, header.Length, throwOnEndOfStream: false, ct);
+
+        var format = ImageSignatures.Detect(header.AsSpan(0, read));
+        if (format is null)
+            return Result.Failure(OperationError.Validation, "logo.invalid_type");
+
+        stream.Position = 0;
+
+        var newPath = $"carriers/{userId}/{Guid.NewGuid():N}{format.Extension}";
+        await storage.UploadAsync(newPath, stream, format.ContentType, ct);
+
+        var oldPath = user.CarrierProfile.LogoPath;
+        user.CarrierProfile.LogoPath = newPath;
+
+        try
+        {
+            await dbContext.SaveChangesAsync(ct);
+        }
+        catch
+        {
+            await storage.TryDeleteAsync(newPath);
+            throw;
+        }
+
+        if (oldPath is not null)
+            await storage.TryDeleteAsync(oldPath);
+
+        return Result<ProfileDto>.Success(ToDto(user));
+    }
+
+    public async Task<Result<ProfileDto>> DeleteLogoAsync(Guid userId)
+    {
+        var user = await dbContext.Users
+            .Include(u => u.CarrierProfile)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user?.CarrierProfile is null)
+            return Result.Failure(OperationError.NotFound, "carrier.profile_not_found");
+
+        var oldPath = user.CarrierProfile.LogoPath;
+        if (oldPath is not null)
+        {
+            user.CarrierProfile.LogoPath = null;
+            await dbContext.SaveChangesAsync();
+            await storage.TryDeleteAsync(oldPath);
+        }
+
+        return Result<ProfileDto>.Success(ToDto(user));
+    }
+
+    private ProfileDto ToDto(User user) => new(
         user.Id,
         user.Name,
         user.Email!,
@@ -114,5 +182,6 @@ public class ProfileService(
         user.Role,
         user.EmailConfirmed,
         user.CarrierProfile?.CompanyName,
-        user.CarrierProfile?.Bio);
+        user.CarrierProfile?.Bio,
+        storage.GetPublicUrl(user.CarrierProfile?.LogoPath));
 }

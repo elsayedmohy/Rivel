@@ -1,3 +1,4 @@
+
 namespace RiverLine.Api;
 
 public static class DependencyInjection
@@ -88,6 +89,29 @@ public static class DependencyInjection
         return builder;
     }
 
+
+    public static WebApplicationBuilder AddFilesUploadServices(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddOptions<SupabaseStorageSettings>()
+            .Bind(builder.Configuration.GetSection("Supabase"))
+            .Validate(o => Uri.TryCreate(o.Url, UriKind.Absolute, out _)
+                           && !string.IsNullOrWhiteSpace(o.ServiceKey),
+                "Supabase:Url and Supabase:ServiceKey are required")
+            .ValidateOnStart();
+
+        builder.Services.AddHttpClient<IFileStorage, SupabaseStorage>((sp, http) =>
+        {
+            var s = sp.GetRequiredService<IOptions<SupabaseStorageSettings>>().Value;
+            http.BaseAddress = new Uri(s.BaseUrl + "/");
+            http.DefaultRequestHeaders.Add("apikey", s.ServiceKey);
+            http.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", s.ServiceKey);
+            http.Timeout = TimeSpan.FromSeconds(30);
+        });
+        return builder;
+    }
+    
+    
     public static WebApplicationBuilder AddNotificationServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddSignalR();

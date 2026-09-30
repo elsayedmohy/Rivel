@@ -8,4 +8,6 @@ public record ProfileDto(
     UserRole Role,
     bool EmailConfirmed,
     string? CompanyName,
-    string? Bio);
+    string? Bio,
+    string? LogoPath
+    );

@@ -12,4 +12,6 @@ public class CarrierProfile
     public ICollection<CarrierRoute> Routes { get; set; } = new List<CarrierRoute>();
 
     public ICollection<Vessel> Vessels { get; set; } = new List<Vessel>();
+    
+    public string? LogoPath { get; set; }
 }

@@ -28,4 +28,24 @@ public class ProfileController(IProfileService profileService) : ControllerBase
         var result = await profileService.ChangePasswordAsync(User.GetUserId(), dto);
         return result.Succeeded ? NoContent() : this.ToActionResult(result);
     }
+    
+    [HttpPost("logo")]
+    [Authorize(Roles = "Carrier")]
+    [EnableRateLimiting(RateLimitPolicies.Sensitive)]
+    [RequestSizeLimit(5 * 1024 * 1024)]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadLogo(IFormFile file, CancellationToken ct)
+    {
+        var result = await profileService.UploadLogoAsync(User.GetUserId(), file, ct);
+        return this.ToActionResult(result);
+    }
+
+    [HttpDelete("logo")]
+    [Authorize(Roles = "Carrier")]
+    public async Task<IActionResult> DeleteLogo()
+    {
+        var result = await profileService.DeleteLogoAsync(User.GetUserId());
+        return this.ToActionResult(result);
+    }
+    
 }
