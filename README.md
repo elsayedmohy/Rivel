@@ -2,7 +2,7 @@
 
 A two-sided freight logistics marketplace digitizing Nile river shipping — connecting **Cargo Owners** who need to move goods with **Carriers** who operate vessels.
 
-🌐 **Live:** [rivel-seven.vercel.app](https://rivel-seven.vercel.app/auth/login) &nbsp;|&nbsp; 🔌 **API:** [rivel.runasp.net](https://rivel.runasp.net/swagger)
+🌐 **Live:** [rivel.site](https://www.rivel.site/) &nbsp;|&nbsp; 🔌 **API:** [rivel.runasp.net](https://rivel.runasp.net/swagger)
 
 ---
 
