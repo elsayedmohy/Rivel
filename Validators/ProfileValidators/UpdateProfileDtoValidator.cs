@@ -14,7 +14,6 @@ public class UpdateProfileDtoValidator : AbstractValidator<UpdateProfileDto>
             .Must(PhoneNumbers.IsValid)
             .WithMessage("Phone number must be 7–15 digits, optionally starting with +.");
 
-        // إلزامية اسم الشركة للناقل بتتشيك في السيرفس — الـ validator مايعرفش دور المستخدم.
         RuleFor(x => x.CompanyName)
             .MaximumLength(200)
             .WithMessage("Company name must not exceed 200 characters.");

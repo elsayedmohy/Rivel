@@ -19,7 +19,8 @@ public class AuthService(
             UserName = dto.Email,
             Email = dto.Email,
             Name = dto.Name,
-            Role = dto.Role
+            Role = dto.Role,
+            PhoneNumber = PhoneNumbers.Normalize(dto.PhoneNumber)
         };
         IdentityResult result = await userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded)
@@ -39,11 +40,11 @@ public class AuthService(
         }
 
         var accessToken = tokenService.GenerateToken(user);
-        var refreshToken = IssueRefreshTokenAsync(user);
+        var refreshToken = await IssueRefreshTokenAsync(user);
         await SendConfirmationEmailAsync(user);
         return new AuthResult(
             new AuthResponseDto(accessToken,
-                refreshToken.Result.Token,
+                refreshToken.Token,
                 user.Id,
                 user.Role.ToString()
             ),
@@ -62,10 +63,10 @@ public class AuthService(
             return null;
 
         var accessToken = tokenService.GenerateToken(user);
-        var refreshToken = IssueRefreshTokenAsync(user);
+        var refreshToken = await IssueRefreshTokenAsync(user);
 
         return new AuthResult(
-            new AuthResponseDto(accessToken, refreshToken.Result.Token, user.Id, user.Role.ToString()),
+            new AuthResponseDto(accessToken, refreshToken.Token, user.Id, user.Role.ToString()),
             []);
     }
 

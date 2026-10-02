@@ -4,7 +4,8 @@ namespace RiverLine.Api.Controllers;
 [ApiController]
 [Route("api/shipments")]
 [Authorize]
-public class ShipmentsController(IShipmentService service) : ControllerBase
+public class ShipmentsController(IShipmentService service,
+    IRatingService ratingService) : ControllerBase
 {
     [HttpPatch("{shipmentId:guid}/status")]
     [Authorize(Roles = "Carrier")]
@@ -23,17 +24,25 @@ public class ShipmentsController(IShipmentService service) : ControllerBase
         return this.ToActionResult(result);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await service.GetByIdAsync(id);
+        var result = await service.GetByIdAsync(id, User.GetUserId());
         return result is null ? NotFound() : Ok(result);
     }
     
-    [HttpGet("{id}/rating")]
+    [HttpGet("{id:guid}/rating")]
     public async Task<IActionResult> GetRating(Guid id)
     {
-        var result = await service.GetRatingAsync(id, User.GetUserId());
+        var result = await ratingService.GetRatingAsync(id, User.GetUserId());
+        return this.ToActionResult(result);
+    }
+    
+    [HttpGet("{id:guid}/contact")]
+    public async Task<IActionResult> GetContact(Guid id)
+    {
+        Response.Headers.CacheControl = "no-store";   // personal data: no browser/proxy caching
+        var result = await service.GetContactAsync(id, User.GetUserId());
         return this.ToActionResult(result);
     }
 }

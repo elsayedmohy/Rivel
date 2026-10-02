@@ -74,10 +74,7 @@ public class ShipmentService(ApplicationDbContext dbContext,
     
     public async Task<Result<List<ShipmentDto>>> GetAllAsync(Guid userId, bool? rated = null)
     {
-        var query = dbContext.Shipments
-            .AsNoTracking()
-            .Where(x => x.ShipmentRequest.CargoOwnerId == userId
-                        || x.Vessel.CarrierProfile.UserId == userId);
+        var query = VisibleTo(userId).AsNoTracking();
 
         if (rated == false)
             query = query.Where(s => s.Status == ShipmentStatus.Delivered && s.Rating == null);
@@ -114,10 +111,47 @@ public class ShipmentService(ApplicationDbContext dbContext,
 
         return Result<List<ShipmentDto>>.Success(items);
     }
-    public async Task<ShipmentDto?> GetByIdAsync(Guid id)
+    public async Task<ShipmentDto?> GetByIdAsync(Guid id,Guid userId)
     {
-        var shipment = await ShipmentsWithDetails().FirstOrDefaultAsync(s => s.Id == id);
+        var shipment = await ShipmentsWithDetails()
+            .Where(s => s.ShipmentRequest.CargoOwnerId == userId ||
+                        s.Vessel.CarrierProfile.UserId == userId)
+            .FirstOrDefaultAsync(s => s.Id == id);
         return shipment is null ? null : (shipmentMapper.ToDto(shipment));
+    }
+    
+    
+    public async Task<Result<ShipmentContactDto>> GetContactAsync(Guid shipmentId, Guid userId)
+    {
+        // parties to the Shipment Request  (طرفي الاتفاق)
+        
+        var parties = await VisibleTo(userId)
+            .Where(s => s.Id == shipmentId)
+            .Select(s => new
+            {
+                OwnerId = s.ShipmentRequest.CargoOwnerId,
+                CarrierId = s.Vessel.CarrierProfile.UserId
+            })
+            .FirstOrDefaultAsync();
+
+        if (parties is null)
+            return Result.Failure(OperationError.NotFound, "shipment.not_found");
+
+        var counterpartId = parties.OwnerId == userId ? parties.CarrierId : parties.OwnerId;
+
+        var contact = await dbContext.Users
+            .AsNoTracking()
+            .Where(u => u.Id == counterpartId)
+            .Select(u => new ShipmentContactDto(
+                u.Name,
+                u.CarrierProfile != null ? u.CarrierProfile.CompanyName : null,
+                u.Email!,
+                u.PhoneNumber))
+            .FirstOrDefaultAsync();
+
+        return contact is null
+            ? Result.Failure(OperationError.NotFound, "shipment.not_found")
+            : Result<ShipmentContactDto>.Success(contact);
     }
 
     private IQueryable<Shipment> ShipmentsWithDetails() =>
@@ -128,18 +162,12 @@ public class ShipmentService(ApplicationDbContext dbContext,
             .Include(s => s.Vessel)
                 .ThenInclude(v => v.CarrierProfile)
             .Include(s => s.Rating);
-
-    public async Task<Result<RatingDto>> GetRatingAsync(Guid shipmentId, Guid requestingUserId)
-    {
-        var rating = await dbContext.Ratings
-            .Where(r => r.ShipmentId == shipmentId)
-            .Select(r => new RatingDto(r.Id, r.ShipmentId, r.Score, r.Comment))
-            .SingleOrDefaultAsync();
-
-        if (rating is null)
-            return Result.Failure(OperationError.NotFound, "Rating not found.");
-
-        return Result<RatingDto>.Success(rating);
-    }
+    
+    
+    
+    private IQueryable<Shipment> VisibleTo(Guid userId) =>
+        dbContext.Shipments.Where(s =>
+            s.ShipmentRequest.CargoOwnerId == userId ||
+            s.Vessel.CarrierProfile.UserId == userId);
     
 }

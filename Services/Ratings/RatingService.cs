@@ -8,6 +8,22 @@ public class RatingService(
     IOptions<AppUrls> urls) : IRatingService
 {
     private readonly AppUrls _urls = urls.Value;
+    
+    
+    
+    public async Task<Result<RatingDto>> GetRatingAsync(Guid shipmentId, Guid requestingUserId)
+    {
+        var rating = await dbContext.Ratings
+            .Where(r => r.ShipmentId == shipmentId &&
+                        (r.CargoOwnerId == requestingUserId || r.CarrierId == requestingUserId))
+            .Select(r => new RatingDto(r.Id, r.ShipmentId, r.Score, r.Comment))
+            .SingleOrDefaultAsync();
+
+        if (rating is null)
+            return Result.Failure(OperationError.NotFound, "Rating not found.");
+
+        return Result<RatingDto>.Success(rating);
+    }
 
     public async Task<Result<RatingDto>> CreateAsync(Guid cargoOwnerId, CreateRatingDto dto)
     {

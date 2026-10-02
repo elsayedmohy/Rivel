@@ -15,8 +15,9 @@ public class OfferService(
     private readonly AppUrls _urls = urls.Value;
     public async Task<Result<OfferDto>> CreateAsync(Guid carrierId, Guid shipmentRequestId, CreateOfferDto dto)
     {
-        if (!await dbContext.IsEmailConfirmedAsync(carrierId))  
-            return Result.Failure(OperationError.Forbidden, "email.unconfirmed");
+        var blocker = await dbContext.GetDealBlockerAsync(carrierId);
+        if (blocker is not null)
+            return Result.Failure(OperationError.Forbidden, blocker);
         
         var request = await dbContext.ShipmentRequests
             .Include(r => r.OriginNileBerth)
@@ -152,6 +153,10 @@ public class OfferService(
 
     public async Task<Result<ShipmentDto>> AcceptAsync(Guid cargoOwnerId, Guid offerId)
     {
+        var blocker = await dbContext.GetDealBlockerAsync(cargoOwnerId);
+        if (blocker is not null)
+            return Result.Failure(OperationError.Forbidden, blocker);
+        
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var lockedOffer = await dbContext.Offers

@@ -31,5 +31,10 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
             .MaximumLength(200)
             .WithMessage("Company name must not exceed 200 characters.")
             .When(x => x.Role == UserRole.Carrier);
+        
+        
+        RuleFor(x => x.PhoneNumber)
+            .Must(PhoneNumbers.IsValid)
+            .WithMessage("Phone number must be 7–15 digits, optionally starting with +.");
     }
 }

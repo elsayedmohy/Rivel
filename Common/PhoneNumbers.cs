@@ -15,9 +15,9 @@ public static class PhoneNumbers
             if (c is ' ' or '-' or '(' or ')' or ' ')
                 continue;
 
-            if (c is >= '٠' and <= '٩')        // ٠–٩
+            if (c is >= '٠' and <= '٩')
                 builder.Append((char)('0' + (c - '٠')));
-            else if (c is >= '۰' and <= '۹')   // ۰–۹
+            else if (c is >= '۰' and <= '۹')
                 builder.Append((char)('0' + (c - '۰')));
             else
                 builder.Append(c);

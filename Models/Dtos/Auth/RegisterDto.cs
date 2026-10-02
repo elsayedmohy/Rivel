@@ -5,5 +5,5 @@ public record RegisterDto(
     string Email,
     string Password,
     UserRole Role,
-    string? CompanyName
-    );
+    string? CompanyName,
+    string? PhoneNumber = null);

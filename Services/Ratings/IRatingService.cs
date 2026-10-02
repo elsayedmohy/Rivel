@@ -6,4 +6,7 @@ public interface IRatingService
 
     Task<Result<CarrierRatingsDto>> GetMyRatingsAsync(
         Guid carrierId, CarrierRatingsQuery query);
+    
+    Task<Result<RatingDto>> GetRatingAsync(Guid shipmentId, Guid requestingUserId);
+    
 }

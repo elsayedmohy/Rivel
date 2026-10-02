@@ -1,9 +1,6 @@
 namespace RiverLine.Api.Validators;
 
-// سياسة كلمة السر في مكان واحد — كانت متكررة في RegisterDtoValidator،
-// وكانت هتتكرر تاني في تغيير كلمة السر وفي reset-password (سلايس ٢).
-// لازم تفضل مطابقة لإعدادات options.Password في AddAuthenticationServices
-// ولـ strongPassword في الفرونت (features/auth/password.validator.ts).
+
 public static class PasswordRules
 {
     public static IRuleBuilderOptions<T, string> StrongPassword<T>(this IRuleBuilder<T, string> rule) =>
